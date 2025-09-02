@@ -1,0 +1,72 @@
+{
+  "name": "supabase-typed-query",
+  "version": "0.1.0",
+  "description": "Type-safe query builder and entity pattern for Supabase with TypeScript",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "supabase",
+    "typescript",
+    "query",
+    "builder",
+    "typed",
+    "entity",
+    "orm",
+    "type-safe",
+    "functype"
+  ],
+  "author": "Jordan Burke",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jordanburke/supabase-typed-query"
+  },
+  "bugs": {
+    "url": "https://github.com/jordanburke/supabase-typed-query/issues"
+  },
+  "homepage": "https://github.com/jordanburke/supabase-typed-query#readme",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "prepublishOnly": "npm run typecheck && npm run test && npm run build"
+  },
+  "peerDependencies": {
+    "@supabase/supabase-js": "^2.0.0",
+    "functype": ">=0.14.0"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "@types/node": "^20.14.10",
+    "@typescript-eslint/eslint-plugin": "^8.10.0",
+    "@typescript-eslint/parser": "^8.10.0",
+    "eslint": "^9.13.0",
+    "functype": "^0.14.7",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11",
+    "vite-plugin-dts": "^4.3.0",
+    "vitest": "^2.1.5"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

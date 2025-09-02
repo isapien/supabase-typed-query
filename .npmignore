@@ -1,0 +1,39 @@
+# Source files (only ship dist)
+src/
+test/
+examples/
+
+# Config files
+tsconfig.json
+vite.config.ts
+vitest.config.ts
+.eslintrc*
+.prettierrc*
+
+# Development files
+*.log
+*.tsbuildinfo
+.gitignore
+.git/
+.github/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+*.lcov
+.nyc_output
+
+# Keep these
+!dist/
+!README.md
+!LICENSE
+!package.json
