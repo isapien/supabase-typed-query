@@ -33,12 +33,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jordanburke/supabase-typed-query"
+    "url": "https://github.com/isapien/supabase-typed-query"
   },
   "bugs": {
-    "url": "https://github.com/jordanburke/supabase-typed-query/issues"
+    "url": "https://github.com/isapien/supabase-typed-query/issues"
   },
-  "homepage": "https://github.com/jordanburke/supabase-typed-query#readme",
+  "homepage": "https://github.com/isapien/supabase-typed-query#readme",
   "scripts": {
     "validate": "pnpm format && pnpm lint:check && pnpm typecheck && pnpm test && pnpm build",
     "format": "prettier --log-level warn --write \"./**/*.{ts,tsx,css,md,json}\"",
