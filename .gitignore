@@ -35,11 +35,6 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Package manager files
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-
 # Temporary files
 tmp/
 temp/
