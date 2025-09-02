@@ -7,6 +7,7 @@
 export type {
   Database,
   EmptyObject,
+  QueryBuilder,
   SupabaseClientType,
   TableInsert,
   TableNames,
@@ -15,15 +16,6 @@ export type {
 } from "./types"
 
 // Query exports
-export {
-  addEntities,
-  getEntities,
-  getEntity,
-  query,
-  updateEntities,
-  updateEntity,
-} from "./query"
-
 export type {
   ComparisonOperators,
   EntityQuery,
@@ -36,10 +28,9 @@ export type {
   SingleExecution,
   WhereConditions,
 } from "./query"
+export { addEntities, getEntities, getEntity, query, updateEntities, updateEntity } from "./query"
 
 // Entity exports
-export { Entity } from "./entity"
-
 export type {
   AddGlobalItemsParams,
   AddItemsParams,
@@ -53,10 +44,11 @@ export type {
   TypedRecord,
   UpdateItemParams,
   UpdateItemsParams,
-  WhereParams,
   WhereinParams,
+  WhereParams,
 } from "./entity"
+export { Entity } from "./entity"
 
 // Re-export functype utilities that are commonly used with this library
-export { Err, List, Ok, Option } from "functype"
 export type { FPromise, TaskOutcome } from "functype"
+export { Err, List, Ok, Option } from "functype"

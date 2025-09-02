@@ -1,4 +1,5 @@
 import type { Brand, FPromise, List, Option, TaskOutcome } from "functype"
+
 import type { EmptyObject, TableNames, TableRow } from "@/types"
 
 // Comparison operators for advanced queries

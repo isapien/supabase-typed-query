@@ -1,31 +1,30 @@
-import type { EmptyObject, SupabaseClientType, TableInsert, TableNames, TableRow, TableUpdate } from "@/types"
 import type { FPromise, TaskOutcome } from "functype"
 import { Err, List, Ok } from "functype"
+
+import type { EmptyObject, SupabaseClientType, TableInsert, TableNames, TableRow, TableUpdate } from "@/types"
 
 import type { Query, WhereConditions } from "./Query"
 import { createQuery } from "./QueryBuilder"
 
 // Re-export query types
-export type { 
+export type {
   ComparisonOperators,
-  EntityQuery, 
+  EntityQuery,
   ExecutableQuery,
   IsConditions,
-  MappedQuery, 
+  MappedQuery,
   MultiExecution,
-  Query, 
-  QueryCondition, 
+  Query,
+  QueryCondition,
   SingleExecution,
-  WhereConditions 
+  WhereConditions,
 } from "./Query"
 
 // Local type for IS conditions
 type IsConditionsLocal<T extends object = EmptyObject> = Partial<Record<keyof T, null | boolean>>
 
 // Helper to wrap async operations with error handling
-const wrapAsync = <T>(
-  fn: () => Promise<TaskOutcome<T>>
-): FPromise<TaskOutcome<T>> => {
+const wrapAsync = <T>(fn: () => Promise<TaskOutcome<T>>): FPromise<TaskOutcome<T>> => {
   return fn() as unknown as FPromise<TaskOutcome<T>>
 }
 
@@ -93,8 +92,8 @@ export const getEntities = <T extends TableNames>(
       const baseQuery = client.from(table).select("*").match(where)
 
       const queryWithIn = wherein
-        ? List(Object.entries(wherein)).foldLeft(baseQuery)(
-            (query, [column, values]) => query.in(column, values as never),
+        ? List(Object.entries(wherein)).foldLeft(baseQuery)((query, [column, values]) =>
+            query.in(column, values as never),
           )
         : baseQuery
 
@@ -175,8 +174,8 @@ export const updateEntity = <T extends TableNames>(
         .match(where)
 
       const queryWithIn = wherein
-        ? List(Object.entries(wherein)).foldLeft(baseQuery)(
-            (query, [column, values]) => query.in(column, values as never),
+        ? List(Object.entries(wherein)).foldLeft(baseQuery)((query, [column, values]) =>
+            query.in(column, values as never),
           )
         : baseQuery
 
@@ -229,8 +228,8 @@ export const updateEntities = <T extends TableNames>(
         .match(where ?? {})
 
       const queryWithIn = wherein
-        ? List(Object.entries(wherein)).foldLeft(baseQuery)(
-            (query, [column, values]) => query.in(column, values as never),
+        ? List(Object.entries(wherein)).foldLeft(baseQuery)((query, [column, values]) =>
+            query.in(column, values as never),
           )
         : baseQuery
 

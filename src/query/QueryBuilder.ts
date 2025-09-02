@@ -2,13 +2,14 @@ import type { Brand, FPromise, TaskOutcome } from "functype"
 import { Err, List, Ok, Option } from "functype"
 
 import type { SupabaseClientType, TableNames, TableRow } from "@/types"
+
 import type { IsConditions, MappedQuery, Query, QueryBuilderConfig, QueryCondition, WhereConditions } from "./Query"
 
 // Simple console logging for open source version
 const log = {
   error: (msg: string) => console.error(`[supabase-typed-query] ${msg}`),
   warn: (msg: string) => console.warn(`[supabase-typed-query] ${msg}`),
-  info: (msg: string) => console.info(`[supabase-typed-query] ${msg}`)
+  info: (msg: string) => console.info(`[supabase-typed-query] ${msg}`),
 }
 
 // Tables that don't have a deleted field (like version tracking tables)
@@ -19,15 +20,16 @@ const TABLES_WITHOUT_DELETED = new Set<string>([])
  * Functional QueryBuilder implementation using closures instead of classes
  */
 // Helper to wrap async operations with error handling
-const wrapAsync = <T>(
-  fn: () => Promise<TaskOutcome<T>>
-): FPromise<TaskOutcome<T>> => {
+const wrapAsync = <T>(fn: () => Promise<TaskOutcome<T>>): FPromise<TaskOutcome<T>> => {
   // FPromise in newer functype versions is just a promise with additional methods
   // We can use the FPromise constructor if available, or cast it
   return fn() as unknown as FPromise<TaskOutcome<T>>
 }
 
-export const QueryBuilder = <T extends TableNames>(client: SupabaseClientType, config: QueryBuilderConfig<T>): Query<T> => {
+export const QueryBuilder = <T extends TableNames>(
+  client: SupabaseClientType,
+  config: QueryBuilderConfig<T>,
+): Query<T> => {
   /**
    * Build the Supabase query from accumulated conditions
    */
@@ -109,25 +111,40 @@ export const QueryBuilder = <T extends TableNames>(client: SupabaseClientType, c
           // Check if it's an operator object
           const ops = value as Record<string, unknown>
           if (ops.gte !== undefined) {
-            extractedOperators.gte = { ...extractedOperators.gte, [key]: ops.gte }
+            extractedOperators.gte = {
+              ...extractedOperators.gte,
+              [key]: ops.gte,
+            }
           }
           if (ops.gt !== undefined) {
             extractedOperators.gt = { ...extractedOperators.gt, [key]: ops.gt }
           }
           if (ops.lte !== undefined) {
-            extractedOperators.lte = { ...extractedOperators.lte, [key]: ops.lte }
+            extractedOperators.lte = {
+              ...extractedOperators.lte,
+              [key]: ops.lte,
+            }
           }
           if (ops.lt !== undefined) {
             extractedOperators.lt = { ...extractedOperators.lt, [key]: ops.lt }
           }
           if (ops.neq !== undefined) {
-            extractedOperators.neq = { ...extractedOperators.neq, [key]: ops.neq }
+            extractedOperators.neq = {
+              ...extractedOperators.neq,
+              [key]: ops.neq,
+            }
           }
           if (ops.like !== undefined) {
-            extractedOperators.like = { ...extractedOperators.like, [key]: ops.like as string }
+            extractedOperators.like = {
+              ...extractedOperators.like,
+              [key]: ops.like as string,
+            }
           }
           if (ops.ilike !== undefined) {
-            extractedOperators.ilike = { ...extractedOperators.ilike, [key]: ops.ilike as string }
+            extractedOperators.ilike = {
+              ...extractedOperators.ilike,
+              [key]: ops.ilike as string,
+            }
           }
           if (ops.in !== undefined) {
             // Handle IN operator
@@ -392,7 +409,9 @@ export const QueryBuilder = <T extends TableNames>(client: SupabaseClientType, c
     whereId: <ID extends Brand<string, string>>(id: ID): Query<T> => {
       const newConditions = [
         ...config.conditions,
-        { where: { id: id as unknown } as unknown as WhereConditions<TableRow<T>> },
+        {
+          where: { id: id as unknown } as unknown as WhereConditions<TableRow<T>>,
+        },
       ]
       return QueryBuilder(client, {
         ...config,
@@ -404,7 +423,9 @@ export const QueryBuilder = <T extends TableNames>(client: SupabaseClientType, c
      * Add OR condition with branded ID
      */
     orWhereId: <ID extends Brand<string, string>>(id: ID): Query<T> => {
-      return QueryBuilder(client, config).or({ id: id as unknown } as unknown as WhereConditions<TableRow<T>>)
+      return QueryBuilder(client, config).or({
+        id: id as unknown,
+      } as unknown as WhereConditions<TableRow<T>>)
     },
 
     /**
@@ -448,76 +469,73 @@ export const QueryBuilder = <T extends TableNames>(client: SupabaseClientType, c
      * Execute query expecting exactly one result
      */
     one: (): FPromise<TaskOutcome<Option<TableRow<T>>>> => {
-      return wrapAsync(
-        async () => {
-          try {
-            const query = buildSupabaseQuery()
-            const { data, error } = await query.single()
+      return wrapAsync(async () => {
+        try {
+          const query = buildSupabaseQuery()
+          const { data, error } = await query.single()
 
-            if (error) {
-              log.error(`Error getting ${config.table} item: ${String(error)}`)
-              return Err<Option<TableRow<T>>>(error)
-            }
-
-            const result = data as TableRow<T>
-            const filteredResult = config.filterFn ? config.filterFn(result) : true
-
-            if (!filteredResult) {
-              return Ok(Option.none<TableRow<T>>())
-            }
-
-            return Ok(Option(result))
-          } catch (error) {
-            log.error(`Error executing single query on ${config.table}: ${String(error)}`)
-            return Err<Option<TableRow<T>>>(error as Error)
+          if (error) {
+            log.error(`Error getting ${config.table} item: ${String(error)}`)
+            return Err<Option<TableRow<T>>>(error)
           }
-        })
+
+          const result = data as TableRow<T>
+          const filteredResult = config.filterFn ? config.filterFn(result) : true
+
+          if (!filteredResult) {
+            return Ok(Option.none<TableRow<T>>())
+          }
+
+          return Ok(Option(result))
+        } catch (error) {
+          log.error(`Error executing single query on ${config.table}: ${String(error)}`)
+          return Err<Option<TableRow<T>>>(error as Error)
+        }
+      })
     },
 
     /**
      * Execute query expecting zero or more results
      */
     many: (): FPromise<TaskOutcome<List<TableRow<T>>>> => {
-      return wrapAsync(
-        async () => {
-          try {
-            const query = buildSupabaseQuery()
-            const { data, error } = await query
+      return wrapAsync(async () => {
+        try {
+          const query = buildSupabaseQuery()
+          const { data, error } = await query
 
-            if (error) {
-              log.error(`Error getting ${config.table} items: ${String(error)}`)
-              return Err<List<TableRow<T>>>(error)
-            }
-
-            const rawResults = data as TableRow<T>[]
-
-            // Apply filter if present
-            const results = config.filterFn ? rawResults.filter(config.filterFn) : rawResults
-
-            return Ok(List(results))
-          } catch (error) {
-            log.error(`Error executing multi query on ${config.table}: ${String(error)}`)
-            return Err<List<TableRow<T>>>(error as Error)
+          if (error) {
+            log.error(`Error getting ${config.table} items: ${String(error)}`)
+            return Err<List<TableRow<T>>>(error)
           }
-        })
+
+          const rawResults = data as TableRow<T>[]
+
+          // Apply filter if present
+          const results = config.filterFn ? rawResults.filter(config.filterFn) : rawResults
+
+          return Ok(List(results))
+        } catch (error) {
+          log.error(`Error executing multi query on ${config.table}: ${String(error)}`)
+          return Err<List<TableRow<T>>>(error as Error)
+        }
+      })
     },
 
     /**
      * Execute query expecting first result from potentially multiple
      */
     first: (): FPromise<TaskOutcome<Option<TableRow<T>>>> => {
-      return wrapAsync(
-        async () => {
-          const manyResult = await QueryBuilder(client, config).many()
-          if (manyResult.isFailure()) {
-            return Err<Option<TableRow<T>>>(manyResult.error)
-          }
-          const list = manyResult.get()
-          if (list.isEmpty) {
-            return Ok(Option.none<TableRow<T>>())
-          }
-          return Ok(Option(list.head))
-        })
+      return wrapAsync(async () => {
+        const manyResult = await QueryBuilder(client, config).many()
+        if (manyResult.isFailure()) {
+          return Err<Option<TableRow<T>>>(manyResult.error)
+        }
+        const list = manyResult.get()
+        if (list.isEmpty) {
+          return Ok(Option.none<TableRow<T>>())
+        }
+        return Ok(Option(list.head))
+      })
     },
 
     /**

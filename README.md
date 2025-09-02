@@ -34,67 +34,59 @@ npx supabase gen types typescript --project-id your-project-id > database.types.
 ### 2. Create a typed client
 
 ```typescript
-import { createClient } from '@supabase/supabase-js'
-import type { Database } from './database.types'
+import { createClient } from "@supabase/supabase-js"
+import type { Database } from "./database.types"
 
-const supabase = createClient<Database>(
-  'your-supabase-url',
-  'your-anon-key'
-)
+const supabase = createClient<Database>("your-supabase-url", "your-anon-key")
 ```
 
 ### 3. Use the Query Builder
 
 ```typescript
-import { query } from 'supabase-typed-query'
+import { query } from "supabase-typed-query"
 
 // Simple query
-const user = await query(supabase, 'users', { id: '123' })
-  .one()
+const user = await query(supabase, "users", { id: "123" }).one()
 
 // Query with OR conditions
-const posts = await query(supabase, 'posts', { status: 'published' })
-  .or({ status: 'draft', author_id: userId })
-  .many()
+const posts = await query(supabase, "posts", { status: "published" }).or({ status: "draft", author_id: userId }).many()
 
 // Query with functional operations
-const titles = await query(supabase, 'posts', { status: 'published' })
-  .map(post => post.title)
-  .filter(title => title.length > 10)
+const titles = await query(supabase, "posts", { status: "published" })
+  .map((post) => post.title)
+  .filter((title) => title.length > 10)
   .many()
 ```
 
 ### 4. Use the Entity Pattern
 
 ```typescript
-import { Entity } from 'supabase-typed-query'
+import { Entity } from "supabase-typed-query"
 
 // Create an entity for your table
-const PostEntity = Entity(supabase, 'posts')
+const PostEntity = Entity(supabase, "posts")
 
 // Get all posts
 const posts = await PostEntity.getGlobalItems({
-  where: { status: 'published' },
-  order: ['created_at', { ascending: false }]
+  where: { status: "published" },
+  order: ["created_at", { ascending: false }],
 }).many()
 
 // Get a single post
 const post = await PostEntity.getItem({
-  id: 'post-123',
-  where: { status: 'published' }
+  id: "post-123",
+  where: { status: "published" },
 }).one()
 
 // Add posts
 const newPosts = await PostEntity.addItems({
-  items: [
-    { title: 'New Post', content: 'Content here', status: 'draft' }
-  ]
+  items: [{ title: "New Post", content: "Content here", status: "draft" }],
 }).execute()
 
 // Update a post
 const updated = await PostEntity.updateItem({
-  id: 'post-123',
-  item: { status: 'published' }
+  id: "post-123",
+  item: { status: "published" },
 }).execute()
 ```
 
@@ -104,32 +96,32 @@ const updated = await PostEntity.updateItem({
 
 ```typescript
 // Greater than / Less than
-const recentPosts = await query(supabase, 'posts', {
-  created_at: { gte: new Date('2024-01-01') }
+const recentPosts = await query(supabase, "posts", {
+  created_at: { gte: new Date("2024-01-01") },
 }).many()
 
 // Pattern matching
-const searchResults = await query(supabase, 'posts', {
-  title: { ilike: '%typescript%' }
+const searchResults = await query(supabase, "posts", {
+  title: { ilike: "%typescript%" },
 }).many()
 
 // IN queries
-const selectedPosts = await query(supabase, 'posts', {
-  id: { in: ['id1', 'id2', 'id3'] }
+const selectedPosts = await query(supabase, "posts", {
+  id: { in: ["id1", "id2", "id3"] },
 }).many()
 
 // IS NULL checks
-const drafts = await query(supabase, 'posts', {
-  published_at: { is: null }
+const drafts = await query(supabase, "posts", {
+  published_at: { is: null },
 }).many()
 ```
 
 ### Chaining OR Conditions
 
 ```typescript
-const results = await query(supabase, 'users', { role: 'admin' })
-  .or({ role: 'moderator' })
-  .or({ role: 'editor', active: true })
+const results = await query(supabase, "users", { role: "admin" })
+  .or({ role: "moderator" })
+  .or({ role: "editor", active: true })
   .many()
 ```
 
@@ -139,23 +131,23 @@ The library uses functype's `TaskOutcome` for error handling:
 
 ```typescript
 // Using TaskOutcome (recommended for explicit error handling)
-const result = await query(supabase, 'users', { id: userId }).one()
+const result = await query(supabase, "users", { id: userId }).one()
 
 if (result.isOk()) {
   const maybeUser = result.get()
   if (maybeUser.isSome()) {
-    console.log('User found:', maybeUser.get())
+    console.log("User found:", maybeUser.get())
   }
 } else {
-  console.error('Query failed:', result.error)
+  console.error("Query failed:", result.error)
 }
 
 // Using OrThrow methods (simpler but throws errors)
 try {
-  const user = await query(supabase, 'users', { id: userId }).oneOrThrow()
-  console.log('User:', user)
+  const user = await query(supabase, "users", { id: userId }).oneOrThrow()
+  console.log("User:", user)
 } catch (error) {
-  console.error('Query failed:', error)
+  console.error("Query failed:", error)
 }
 ```
 
@@ -165,14 +157,14 @@ All operations are fully type-safe based on your database schema:
 
 ```typescript
 // TypeScript will enforce correct field names and types
-const posts = await query(supabase, 'posts', {
+const posts = await query(supabase, "posts", {
   // ✅ TypeScript knows these fields exist and their types
-  title: 'My Post',
+  title: "My Post",
   published: true,
   view_count: { gte: 100 },
-  
+
   // ❌ TypeScript error: property doesn't exist
-  nonexistent_field: 'value'
+  nonexistent_field: "value",
 }).many()
 ```
 
@@ -181,7 +173,7 @@ const posts = await query(supabase, 'posts', {
 ### Query Methods
 
 - `one()` - Execute query expecting exactly one result
-- `many()` - Execute query expecting zero or more results  
+- `many()` - Execute query expecting zero or more results
 - `first()` - Execute query expecting first result from potentially multiple
 - `oneOrThrow()` - Like `one()` but throws if not found
 - `manyOrThrow()` - Like `many()` but throws on error

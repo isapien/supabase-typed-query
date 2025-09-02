@@ -1,4 +1,3 @@
-export { Entity, type EntityType } from "./Entity"
 export type {
   AddGlobalItemsParams,
   AddItemsParams,
@@ -11,6 +10,7 @@ export type {
   TypedRecord,
   UpdateItemParams,
   UpdateItemsParams,
-  WhereParams,
   WhereinParams,
+  WhereParams,
 } from "./Entity"
+export { Entity, type EntityType } from "./Entity"

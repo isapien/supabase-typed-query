@@ -1,0 +1,66 @@
+import { describe, expect, it } from "vitest"
+
+import type { EntityType, IdParam, TypedRecord, WhereParams } from "../src/entity"
+
+describe("Entity Types", () => {
+  it("should define proper entity type structure", () => {
+    // EntityType expects a TableNames type (string literal)
+    type TestTable = "test_table"
+
+    const entityType: EntityType<TestTable> = {
+      getGlobalItems: expect.any(Function) as never,
+      addGlobalItems: expect.any(Function) as never,
+      getItem: expect.any(Function) as never,
+      getItems: expect.any(Function) as never,
+      addItems: expect.any(Function) as never,
+      updateItem: expect.any(Function) as never,
+      updateItems: expect.any(Function) as never,
+    }
+
+    expect(entityType).toBeDefined()
+  })
+
+  it("should type check IdParam", () => {
+    // IdParam is not generic
+    const idParam: IdParam = {
+      id: "test-id",
+    }
+
+    expect(idParam).toBeDefined()
+    expect(idParam.id).toBe("test-id")
+  })
+
+  it("should type check WhereParams", () => {
+    type TestTable = {
+      id: number
+      name: string
+      active: boolean
+    }
+
+    const whereParams: WhereParams<TestTable> = {
+      where: {
+        active: true,
+        name: "test",
+      },
+    }
+
+    expect(whereParams).toBeDefined()
+    expect(whereParams.where?.active).toBe(true)
+    expect(whereParams.where?.name).toBe("test")
+  })
+
+  it("should handle TypedRecord type", () => {
+    type TestObject = { id: string; value: number }
+    // TypedRecord takes two generic parameters: T and V
+    type TestRecord = TypedRecord<TestObject, string | number>
+
+    const record: TestRecord = {
+      id: "test",
+      value: 42,
+    }
+
+    expect(record).toBeDefined()
+    expect(record.id).toBe("test")
+    expect(record.value).toBe(42)
+  })
+})

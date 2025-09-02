@@ -1,9 +1,9 @@
 import type { FPromise, List, TaskOutcome } from "functype"
 import { Option } from "functype"
 
-import type { EmptyObject, SupabaseClientType, TableInsert, TableNames, TableRow, TableUpdate } from "@/types"
-import type { MultiExecution, Query, SingleExecution, WhereConditions } from "@/query/Query"
 import { addEntities, query, updateEntities, updateEntity } from "@/query/index"
+import type { MultiExecution, Query, SingleExecution, WhereConditions } from "@/query/Query"
+import type { EmptyObject, SupabaseClientType, TableInsert, TableNames, TableRow, TableUpdate } from "@/types"
 
 // Field-level type safety for queries
 export type TypedRecord<T, V> = Partial<Record<keyof T, V>>
@@ -176,12 +176,7 @@ export const Entity = <T extends TableNames>(client: SupabaseClientType, name: T
    * @returns {Query<T>} A chainable query that can be executed with .one(), .many(), or .first()
    */
   function getItem({ id, where, is }: GetItemParams<ROW>): Query<T> {
-    return query(
-      client,
-      name,
-      { ...where, id } as unknown as WhereConditions<TableRow<T>>,
-      is,
-    )
+    return query(client, name, { ...where, id } as unknown as WhereConditions<TableRow<T>>, is)
   }
 
   /**
@@ -195,14 +190,7 @@ export const Entity = <T extends TableNames>(client: SupabaseClientType, name: T
    * @returns {Query<T>} A chainable query that can be executed with .one(), .many(), or .first()
    */
   function getItems({ where, is, wherein, order }: GetItemsParams<ROW> = {}): Query<T> {
-    return query(
-      client,
-      name,
-      where as WhereConditions<TableRow<T>>,
-      is,
-      wherein,
-      order,
-    )
+    return query(client, name, where as WhereConditions<TableRow<T>>, is, wherein, order)
   }
 
   /**
