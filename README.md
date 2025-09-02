@@ -207,6 +207,95 @@ const posts = await query(supabase, "posts", {
 
 MIT
 
+## Development
+
+### Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/jordanburke/supabase-typed-query.git
+cd supabase-typed-query
+
+# Install dependencies
+pnpm install
+
+# Run validation pipeline
+pnpm validate
+```
+
+### Commands
+
+```bash
+# Development
+pnpm validate          # Run full validation: format, lint, typecheck, test, build
+pnpm test             # Run tests
+pnpm test:watch       # Run tests in watch mode
+pnpm test:coverage    # Run tests with coverage
+pnpm build            # Build for production
+pnpm build:dev:watch  # Build in watch mode for development
+
+# Code Quality
+pnpm format           # Format code with Prettier
+pnpm lint             # Fix ESLint issues
+pnpm typecheck        # Type check with TypeScript
+```
+
+### CI/CD Pipeline
+
+This project uses GitHub Actions for continuous integration and deployment:
+
+#### Continuous Integration
+- **Triggered on**: Push/PR to main/develop branches
+- **Test matrix**: Node.js 18.x, 20.x, 22.x
+- **Pipeline**: Format → Lint → Type Check → Test → Build
+
+#### Release Process
+1. Update version in `package.json`
+2. Create and push a version tag:
+   ```bash
+   git tag v1.0.0
+   git push origin v1.0.0
+   ```
+3. GitHub Actions automatically:
+   - Runs full validation pipeline
+   - Publishes to NPM registry
+   - Creates GitHub release
+
+#### Security
+- CodeQL analysis runs on all PRs and weekly scheduled scans
+- Dependency updates via Dependabot
+
+### Publishing
+
+The package is automatically published to NPM when a version tag is pushed. Manual publishing:
+
+```bash
+# Ensure you're logged into NPM
+npm login
+
+# Run validation and publish
+pnpm build:publish
+```
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+### Development Guidelines
+
+1. **Type Safety**: Maintain strict TypeScript types, no `any`
+2. **Functional Style**: Use functional programming patterns with functype
+3. **Testing**: Add tests for new features
+4. **Documentation**: Update README for API changes
+5. **Commits**: Follow conventional commits format
+
+### Pull Request Process
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Run `pnpm validate` to ensure all checks pass
+4. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
+
+Tests will automatically run via GitHub Actions on your PR.
