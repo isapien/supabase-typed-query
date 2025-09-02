@@ -1,39 +1,45 @@
-# Source files (only ship dist)
-src/
+# Development files
 test/
-examples/
+src/
+.github/
+scripts/
 
-# Config files
-tsconfig.json
-vite.config.ts
-vitest.config.ts
+# Build configuration
+*.config.*
+tsconfig*.json
 .eslintrc*
 .prettierrc*
+eslint.config.*
 
-# Development files
-*.log
-*.tsbuildinfo
-.gitignore
-.git/
-.github/
+# Development dependencies
+node_modules/
+.pnpm-lock.yaml
+pnpm-lock.yaml
 
-# IDE
+# IDE and OS
 .vscode/
-.idea/
+.DS_Store
 *.swp
 *.swo
 
-# OS files
-.DS_Store
-Thumbs.db
+# Git
+.git/
+.gitignore
 
-# Testing
+# Logs and temp
+*.log
+.tmp/
+.cache/
+
+# Coverage and testing
 coverage/
-*.lcov
-.nyc_output
+.nyc_output/
 
-# Keep these
-!dist/
-!README.md
-!LICENSE
-!package.json
+# Documentation (will be generated)
+docs/
+
+# Keep these in NPM package
+# dist/
+# README.md
+# LICENSE
+# package.json
