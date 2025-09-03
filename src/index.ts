@@ -29,7 +29,16 @@ export type {
   SingleExecution,
   WhereConditions,
 } from "./query"
-export { addEntities, getEntities, getEntity, isQuery, isMappedQuery, query, updateEntities, updateEntity } from "./query"
+export {
+  addEntities,
+  getEntities,
+  getEntity,
+  isMappedQuery,
+  isQuery,
+  query,
+  updateEntities,
+  updateEntity,
+} from "./query"
 
 // Entity exports
 export type {
