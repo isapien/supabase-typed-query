@@ -245,11 +245,13 @@ pnpm typecheck        # Type check with TypeScript
 This project uses GitHub Actions for continuous integration and deployment:
 
 #### Continuous Integration
+
 - **Triggered on**: Push/PR to main/develop branches
 - **Test matrix**: Node.js 18.x, 20.x, 22.x
 - **Pipeline**: Format → Lint → Type Check → Test → Build
 
 #### Release Process
+
 1. Update version in `package.json`
 2. Create and push a version tag:
    ```bash
@@ -262,6 +264,7 @@ This project uses GitHub Actions for continuous integration and deployment:
    - Creates GitHub release
 
 #### Security
+
 - CodeQL analysis runs on all PRs and weekly scheduled scans
 - Dependency updates via Dependabot
 

@@ -24,11 +24,12 @@ export type {
   MappedQuery,
   MultiExecution,
   Query,
+  QueryBuilderConfig,
   QueryCondition,
   SingleExecution,
   WhereConditions,
 } from "./query"
-export { addEntities, getEntities, getEntity, query, updateEntities, updateEntity } from "./query"
+export { addEntities, getEntities, getEntity, isQuery, isMappedQuery, query, updateEntities, updateEntity } from "./query"
 
 // Entity exports
 export type {

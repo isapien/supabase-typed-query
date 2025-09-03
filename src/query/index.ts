@@ -15,10 +15,14 @@ export type {
   MappedQuery,
   MultiExecution,
   Query,
+  QueryBuilderConfig,
   QueryCondition,
   SingleExecution,
   WhereConditions,
 } from "./Query"
+
+// Re-export type guards
+export { isQuery, isMappedQuery } from "./Query"
 
 // Local type for IS conditions
 type IsConditionsLocal<T extends object = EmptyObject> = Partial<Record<keyof T, null | boolean>>
