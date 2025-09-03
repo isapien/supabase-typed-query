@@ -40,7 +40,7 @@
   },
   "homepage": "https://github.com/isapien/supabase-typed-query#readme",
   "scripts": {
-    "validate": "pnpm format && pnpm lint:check && pnpm typecheck && pnpm test && pnpm build",
+    "validate": "pnpm format && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "format": "prettier --log-level warn --write \"./**/*.{ts,tsx,css,md,json}\"",
     "format:check": "prettier --log-level warn --check \"./**/*.{ts,tsx,css,md,json}\"",
     "lint": "eslint --quiet --fix \"**/*.{ts,tsx}\"",

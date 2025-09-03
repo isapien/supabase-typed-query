@@ -19,8 +19,8 @@ export type {
   QueryCondition,
   QueryIsParams,
   QueryOrderParams,
-  QueryWhereParams,
   QueryWhereinParams,
+  QueryWhereParams,
   SingleExecution,
   WhereConditions,
 } from "./Query"
