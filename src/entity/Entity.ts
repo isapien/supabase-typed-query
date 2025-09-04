@@ -1,7 +1,7 @@
 import type { FPromise, List, TaskOutcome } from "functype"
 import { Option } from "functype"
 
-import { addEntities, query, updateEntities, updateEntity } from "@/query/index"
+import { addEntities, query, updateEntities, updateEntity } from "@/query"
 import type { MultiExecution, Query, SingleExecution, WhereConditions } from "@/query/Query"
 import type { EmptyObject, SupabaseClientType, TableInsert, TableNames, TableRow, TableUpdate } from "@/types"
 
@@ -70,17 +70,17 @@ export type UpdateItemsParams<T extends TableNames, Row extends object = EmptyOb
 /**
  * Wrapper type for multi-result mutation operations that implements standard execution interface
  */
-type MutationMultiExecution<T> = FPromise<TaskOutcome<List<T>>> & MultiExecution<T>
+export type MutationMultiExecution<T> = FPromise<TaskOutcome<List<T>>> & MultiExecution<T>
 
 /**
  * Wrapper type for single-result mutation operations that implements standard execution interface
  */
-type MutationSingleExecution<T> = FPromise<TaskOutcome<T>> & SingleExecution<T>
+export type MutationSingleExecution<T> = FPromise<TaskOutcome<T>> & SingleExecution<T>
 
 /**
  * Creates a multi-result mutation query that implements the standard execution interface
  */
-function createMultiMutationQuery<T>(promise: FPromise<TaskOutcome<List<T>>>): MutationMultiExecution<T> {
+export function MultiMutationQuery<T>(promise: FPromise<TaskOutcome<List<T>>>): MutationMultiExecution<T> {
   const result = Object.assign(promise, {
     // Standard MultiExecution interface
     many: () => promise,
@@ -102,7 +102,7 @@ function createMultiMutationQuery<T>(promise: FPromise<TaskOutcome<List<T>>>): M
 /**
  * Creates a single-result mutation query that implements the standard execution interface
  */
-function createSingleMutationQuery<T>(promise: FPromise<TaskOutcome<T>>): MutationSingleExecution<T> {
+export function SingleMutationQuery<T>(promise: FPromise<TaskOutcome<T>>): MutationSingleExecution<T> {
   const result = Object.assign(promise, {
     // Standard SingleExecution interface
     one: () => promise.then((outcome: TaskOutcome<T>) => outcome.map((value: T) => Option(value))),
@@ -152,7 +152,7 @@ export const Entity = <T extends TableNames>(client: SupabaseClientType, name: T
    * @returns {MutationMultiExecution<ROW>} A mutation query with consistent OrThrow methods.
    */
   function addGlobalItems({ items }: AddGlobalItemsParams<T>): MutationMultiExecution<ROW> {
-    return createMultiMutationQuery(addEntities(client, name, items))
+    return MultiMutationQuery(addEntities(client, name, items))
   }
 
   /**
@@ -189,7 +189,7 @@ export const Entity = <T extends TableNames>(client: SupabaseClientType, name: T
    * @returns {MutationMultiExecution<ROW>} A mutation query with consistent OrThrow methods.
    */
   function addItems({ items }: AddItemsParams<T>): MutationMultiExecution<ROW> {
-    return createMultiMutationQuery(addEntities(client, name, items))
+    return MultiMutationQuery(addEntities(client, name, items))
   }
 
   /**
@@ -203,7 +203,7 @@ export const Entity = <T extends TableNames>(client: SupabaseClientType, name: T
    * @returns {MutationSingleExecution<ROW>} A mutation query with consistent OrThrow methods.
    */
   function updateItem({ id, item, where, is, wherein }: UpdateItemParams<T, ROW>): MutationSingleExecution<ROW> {
-    return createSingleMutationQuery(
+    return SingleMutationQuery(
       updateEntity(client, name, item, { ...where, id } as unknown as WhereConditions<TableRow<T>>, is, wherein),
     )
   }
@@ -225,7 +225,7 @@ export const Entity = <T extends TableNames>(client: SupabaseClientType, name: T
     is,
     wherein,
   }: UpdateItemsParams<T, ROW>): MutationMultiExecution<ROW> {
-    return createMultiMutationQuery(updateEntities(client, name, items, identity, where, is, wherein))
+    return MultiMutationQuery(updateEntities(client, name, items, identity, where, is, wherein))
   }
 
   return {

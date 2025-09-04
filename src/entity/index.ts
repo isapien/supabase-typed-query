@@ -6,6 +6,8 @@ export type {
   GetItemsParams,
   IdParam,
   IsParams,
+  MutationMultiExecution,
+  MutationSingleExecution,
   OrderParams,
   TypedRecord,
   UpdateItemParams,
@@ -13,4 +15,4 @@ export type {
   WhereinParams,
   WhereParams,
 } from "./Entity"
-export { Entity, type EntityType } from "./Entity"
+export { Entity, type EntityType, MultiMutationQuery, SingleMutationQuery } from "./Entity"

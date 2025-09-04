@@ -54,6 +54,8 @@ export type {
   GetItemsParams,
   IdParam,
   IsParams,
+  MutationMultiExecution,
+  MutationSingleExecution,
   OrderParams,
   TypedRecord,
   UpdateItemParams,
@@ -61,7 +63,7 @@ export type {
   WhereinParams,
   WhereParams,
 } from "./entity"
-export { Entity } from "./entity"
+export { Entity, MultiMutationQuery, SingleMutationQuery } from "./entity"
 
 // Re-export functype utilities that are commonly used with this library
 export type { FPromise, TaskOutcome } from "functype"
