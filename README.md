@@ -134,9 +134,9 @@ The library uses functype's `TaskOutcome` for error handling:
 const result = await query(supabase, "users", { id: userId }).one()
 
 if (result.isOk()) {
-  const maybeUser = result.get()
+  const maybeUser = result.getOrThrow()
   if (maybeUser.isSome()) {
-    console.log("User found:", maybeUser.get())
+    console.log("User found:", maybeUser.getOrThrow())
   }
 } else {
   console.error("Query failed:", result.error)

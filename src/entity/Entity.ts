@@ -86,20 +86,14 @@ function createMultiMutationQuery<T>(promise: FPromise<TaskOutcome<List<T>>>): M
     many: () => promise,
     manyOrThrow: async (): Promise<List<T>> => {
       const taskResult = await promise
-      if (taskResult.isFailure()) {
-        throw taskResult.error
-      }
-      return taskResult.get()
+      return taskResult.getOrThrow()
     },
 
     // Standard ExecutableQuery interface
     execute: () => promise,
     executeOrThrow: async (): Promise<List<T>> => {
       const taskResult = await promise
-      if (taskResult.isFailure()) {
-        throw taskResult.error
-      }
-      return taskResult.get()
+      return taskResult.getOrThrow()
     },
   })
   return result as MutationMultiExecution<T>
@@ -114,20 +108,15 @@ function createSingleMutationQuery<T>(promise: FPromise<TaskOutcome<T>>): Mutati
     one: () => promise.then((outcome: TaskOutcome<T>) => outcome.map((value: T) => Option(value))),
     oneOrThrow: async (): Promise<T> => {
       const taskResult = await promise
-      if (taskResult.isFailure()) {
-        throw taskResult.error
-      }
-      return taskResult.get()
+      return taskResult.getOrThrow()
     },
 
     // Standard ExecutableQuery interface
     execute: () => promise.then((outcome: TaskOutcome<T>) => outcome.map((value: T) => Option(value))),
     executeOrThrow: async (): Promise<Option<T>> => {
       const taskResult = await promise
-      if (taskResult.isFailure()) {
-        throw taskResult.error
-      }
-      return Option(taskResult.get())
+      const value = taskResult.getOrThrow()
+      return Option(value)
     },
   })
   return result as MutationSingleExecution<T>
