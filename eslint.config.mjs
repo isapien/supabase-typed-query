@@ -6,6 +6,7 @@ import js from "@eslint/js"
 import typescriptEslint from "@typescript-eslint/eslint-plugin"
 import tsParser from "@typescript-eslint/parser"
 import functionalEslint from "eslint-plugin-functional"
+import functypeConfig from "eslint-config-functype"
 import prettier from "eslint-plugin-prettier"
 import simpleImportSort from "eslint-plugin-simple-import-sort"
 import globals from "globals"
@@ -31,11 +32,15 @@ export default [
       "**/lib",
       "**/tsconfig.json",
       "**/*.d.ts",
+      "jest.config.ts",
+      "types/config.ts",
       "vite.config.ts",
       "vitest.config.ts",
     ],
   },
   ...compat.extends("eslint:recommended", "plugin:@typescript-eslint/recommended", "plugin:prettier/recommended"),
+  // 🚀 The functype plugin now includes ALL the rules!
+  functypeConfig.configs.recommended,
   {
     plugins: {
       "@typescript-eslint": typescriptEslint,
@@ -70,39 +75,32 @@ export default [
     },
 
     rules: {
-      // Functional programming rules
+      // Project-specific overrides to functype defaults
       "functional/no-let": "error",
-      "functional/prefer-immutable-types": "off",
+      "functional/prefer-immutable-types": "off", // Too verbose at this time.
       "functional/immutable-data": [
         "warn",
         {
           ignoreAccessorPattern: ["*.push", "*.pop", "*.shift", "*.unshift"],
         },
       ],
-      // Import sorting
       "simple-import-sort/imports": [
         "error",
         {
           groups: [
-            // Node.js builtins
-            ["^node:"],
-            // External packages
-            ["^@?\\w"],
-            // Internal packages
+            // vitest imports come first
+            ["^vitest"],
+            // Mock helpers come next
+            ["^\\./.*mock", "^\\.\\./.*/mock"],
+            // Module imports that need to be mocked
             ["^@/"],
-            // Parent imports
-            ["^\\.\\."],
-            // Other relative imports
+            // Other imports
+            ["^@?\\w"],
+            ["^"],
             ["^\\."],
           ],
         },
       ],
-      "simple-import-sort/exports": "error",
-      // TypeScript specific
-      "@typescript-eslint/no-explicit-any": "error",
-      "@typescript-eslint/explicit-module-boundary-types": "off",
-      "@typescript-eslint/no-non-null-assertion": "off",
-      "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     },
   },
   {

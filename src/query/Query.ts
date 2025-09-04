@@ -1,6 +1,6 @@
-import type { Brand, FPromise, List, Option, TaskOutcome } from "functype"
-
 import type { EmptyObject, TableNames, TableRow } from "@/types"
+
+import type { Brand, FPromise, List, Option, TaskOutcome } from "functype"
 
 // Comparison operators for advanced queries
 export type ComparisonOperators<V> = {

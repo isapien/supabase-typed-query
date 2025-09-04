@@ -1,7 +1,7 @@
+import type { SupabaseClientType, TableNames, TableRow } from "@/types"
+
 import type { Brand, FPromise, TaskOutcome } from "functype"
 import { Err, List, Ok, Option } from "functype"
-
-import type { SupabaseClientType, TableNames, TableRow } from "@/types"
 
 import type { IsConditions, MappedQuery, Query, QueryBuilderConfig, QueryCondition, WhereConditions } from "./Query"
 

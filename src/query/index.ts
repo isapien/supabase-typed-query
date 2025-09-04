@@ -1,7 +1,7 @@
+import type { EmptyObject, SupabaseClientType, TableInsert, TableNames, TableRow, TableUpdate } from "@/types"
+
 import type { FPromise, TaskOutcome } from "functype"
 import { Err, List, Ok } from "functype"
-
-import type { EmptyObject, SupabaseClientType, TableInsert, TableNames, TableRow, TableUpdate } from "@/types"
 
 import type { Query, WhereConditions } from "./Query"
 import { createQuery } from "./QueryBuilder"

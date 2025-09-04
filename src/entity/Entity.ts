@@ -1,9 +1,9 @@
-import type { FPromise, List, TaskOutcome } from "functype"
-import { Option } from "functype"
-
 import { addEntities, query, updateEntities, updateEntity } from "@/query"
 import type { MultiExecution, Query, SingleExecution, WhereConditions } from "@/query/Query"
 import type { EmptyObject, SupabaseClientType, TableInsert, TableNames, TableRow, TableUpdate } from "@/types"
+
+import type { FPromise, List, TaskOutcome } from "functype"
+import { Option } from "functype"
 
 // Field-level type safety for queries
 export type TypedRecord<T, V> = Partial<Record<keyof T, V>>
