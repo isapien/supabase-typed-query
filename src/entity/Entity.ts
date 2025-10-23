@@ -86,14 +86,14 @@ export function MultiMutationQuery<T>(promise: FPromise<TaskOutcome<List<T>>>): 
     many: () => promise,
     manyOrThrow: async (): Promise<List<T>> => {
       const taskResult = await promise
-      return taskResult.getOrThrow()
+      return taskResult.orThrow()
     },
 
     // Standard ExecutableQuery interface
     execute: () => promise,
     executeOrThrow: async (): Promise<List<T>> => {
       const taskResult = await promise
-      return taskResult.getOrThrow()
+      return taskResult.orThrow()
     },
   })
   return result as MutationMultiExecution<T>
@@ -108,14 +108,14 @@ export function SingleMutationQuery<T>(promise: FPromise<TaskOutcome<T>>): Mutat
     one: () => promise.then((outcome: TaskOutcome<T>) => outcome.map((value: T) => Option(value))),
     oneOrThrow: async (): Promise<T> => {
       const taskResult = await promise
-      return taskResult.getOrThrow()
+      return taskResult.orThrow()
     },
 
     // Standard ExecutableQuery interface
     execute: () => promise.then((outcome: TaskOutcome<T>) => outcome.map((value: T) => Option(value))),
     executeOrThrow: async (): Promise<Option<T>> => {
       const taskResult = await promise
-      const value = taskResult.getOrThrow()
+      const value = taskResult.orThrow()
       return Option(value)
     },
   })

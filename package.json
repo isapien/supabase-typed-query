@@ -71,7 +71,7 @@
     "eslint-plugin-functional": "^9.0.2",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-simple-import-sort": "^12.1.1",
-    "functype": "^0.15.0",
+    "functype": "^0.17.0",
     "globals": "^16.4.0",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3",

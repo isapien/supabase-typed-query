@@ -595,7 +595,7 @@ export const QueryBuilder = <T extends TableNames>(
     first: (): FPromise<TaskOutcome<Option<TableRow<T>>>> => {
       return wrapAsync(async () => {
         const manyResult = await QueryBuilder(client, config).many()
-        const list = manyResult.getOrThrow()
+        const list = manyResult.orThrow()
         if (list.isEmpty) {
           return Ok(Option.none<TableRow<T>>())
         }
@@ -608,8 +608,8 @@ export const QueryBuilder = <T extends TableNames>(
      */
     oneOrThrow: async (): Promise<TableRow<T>> => {
       const result = await QueryBuilder(client, config).one()
-      const option = result.getOrThrow()
-      return option.getOrThrow(new Error(`No record found in ${config.table}`))
+      const option = result.orThrow()
+      return option.orThrow(new Error(`No record found in ${config.table}`))
     },
 
     /**
@@ -617,7 +617,7 @@ export const QueryBuilder = <T extends TableNames>(
      */
     manyOrThrow: async (): Promise<List<TableRow<T>>> => {
       const result = await QueryBuilder(client, config).many()
-      return result.getOrThrow()
+      return result.orThrow()
     },
 
     /**
@@ -625,8 +625,8 @@ export const QueryBuilder = <T extends TableNames>(
      */
     firstOrThrow: async (): Promise<TableRow<T>> => {
       const result = await QueryBuilder(client, config).first()
-      const option = result.getOrThrow()
-      return option.getOrThrow(new Error(`No records found in ${config.table}`))
+      const option = result.orThrow()
+      return option.orThrow(new Error(`No records found in ${config.table}`))
     },
   }
 }
@@ -651,7 +651,7 @@ const createMappedQuery = <T extends TableNames, U>(
     one: (): FPromise<TaskOutcome<Option<U>>> => {
       return wrapAsync(async () => {
         const maybeItemResult = await sourceQuery.one()
-        const maybeItem = maybeItemResult.getOrThrow()
+        const maybeItem = maybeItemResult.orThrow()
         return maybeItem.fold(
           () => Ok(Option.none<U>()),
           (item) => Ok(Option(mapFn(item))),
@@ -662,7 +662,7 @@ const createMappedQuery = <T extends TableNames, U>(
     many: (): FPromise<TaskOutcome<List<U>>> => {
       return wrapAsync(async () => {
         const itemsResult = await sourceQuery.many()
-        const items = itemsResult.getOrThrow()
+        const items = itemsResult.orThrow()
         return Ok(items.map(mapFn))
       })
     },
@@ -670,7 +670,7 @@ const createMappedQuery = <T extends TableNames, U>(
     first: (): FPromise<TaskOutcome<Option<U>>> => {
       return wrapAsync(async () => {
         const maybeItemResult = await sourceQuery.first()
-        const maybeItem = maybeItemResult.getOrThrow()
+        const maybeItem = maybeItemResult.orThrow()
         return maybeItem.fold(
           () => Ok(Option.none<U>()),
           (item) => Ok(Option(mapFn(item))),
@@ -683,8 +683,8 @@ const createMappedQuery = <T extends TableNames, U>(
      */
     oneOrThrow: async (): Promise<U> => {
       const result = await createMappedQuery(sourceQuery, mapFn).one()
-      const option = result.getOrThrow()
-      return option.getOrThrow(new Error(`No record found`))
+      const option = result.orThrow()
+      return option.orThrow(new Error(`No record found`))
     },
 
     /**
@@ -692,7 +692,7 @@ const createMappedQuery = <T extends TableNames, U>(
      */
     manyOrThrow: async (): Promise<List<U>> => {
       const result = await createMappedQuery(sourceQuery, mapFn).many()
-      return result.getOrThrow()
+      return result.orThrow()
     },
 
     /**
@@ -700,8 +700,8 @@ const createMappedQuery = <T extends TableNames, U>(
      */
     firstOrThrow: async (): Promise<U> => {
       const result = await createMappedQuery(sourceQuery, mapFn).first()
-      const option = result.getOrThrow()
-      return option.getOrThrow(new Error(`No records found`))
+      const option = result.orThrow()
+      return option.orThrow(new Error(`No records found`))
     },
   }
 }

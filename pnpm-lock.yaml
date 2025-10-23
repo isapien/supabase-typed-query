@@ -46,8 +46,8 @@ importers:
         specifier: ^12.1.1
         version: 12.1.1(eslint@9.38.0)
       functype:
-        specifier: ^0.15.0
-        version: 0.15.0
+        specifier: ^0.17.0
+        version: 0.17.0
       globals:
         specifier: ^16.4.0
         version: 16.4.0
@@ -961,8 +961,8 @@ packages:
   function-bind@1.1.2:
     resolution: {integrity: sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==}
 
-  functype@0.15.0:
-    resolution: {integrity: sha512-baZdxZnW6Q/TR9Zv2UTFCPInEQGYxj0Nc4/FZXtRrUb73zU1pHqKoKRzsmavptgBAuiHFTkmunttJode+FK+YQ==}
+  functype@0.17.0:
+    resolution: {integrity: sha512-7CErdw5JnEMaxilhF7b7fYN9hLsP1Xsdk5/LIAwtmftdL1uGh9bYVTehBfoknVo7RgUn6eKv6XtCa+mLYKJ6pA==}
 
   glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
@@ -2405,7 +2405,7 @@ snapshots:
 
   function-bind@1.1.2: {}
 
-  functype@0.15.0:
+  functype@0.17.0:
     dependencies:
       safe-stable-stringify: 2.5.0
 
