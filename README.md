@@ -10,6 +10,8 @@ Type-safe query builder and entity pattern for Supabase with TypeScript.
 - 🚀 **Functional programming** - Built with functype for robust error handling
 - ⚡ **Zero runtime overhead** - All type checking happens at compile time
 - 🔄 **Composable queries** - Mix and match conditions, filters, and transformations
+- 🗑️ **Soft delete support** - Built-in soft delete filtering with per-query overrides
+- 🏢 **Multi-tenancy ready** - Automatic partition key filtering for tenant isolation
 
 ## Installation
 
@@ -63,11 +65,13 @@ const titles = await query(supabase, "posts", { status: "published" })
 ```typescript
 import { Entity } from "supabase-typed-query"
 
-// Create an entity for your table
-const PostEntity = Entity(supabase, "posts")
+// Create an entity for your table with configuration
+const PostEntity = Entity(supabase, "posts", {
+  softDelete: true, // Automatically exclude soft-deleted items
+})
 
 // Get all posts
-const posts = await PostEntity.getGlobalItems({
+const posts = await PostEntity.getItems({
   where: { status: "published" },
   order: ["created_at", { ascending: false }],
 }).many()
@@ -123,6 +127,54 @@ const results = await query(supabase, "users", { role: "admin" })
   .or({ role: "moderator" })
   .or({ role: "editor", active: true })
   .many()
+```
+
+### Soft Deletes
+
+Control soft delete behavior at the Entity or Query level:
+
+```typescript
+// Entity with soft deletes enabled (excludes deleted by default)
+const UserEntity = Entity(supabase, "users", {
+  softDelete: true, // Automatically filters out deleted items
+})
+
+// Override soft delete behavior per query
+const allUsers = await UserEntity.getItems().includeDeleted().many()
+const deletedOnly = await UserEntity.getItems().onlyDeleted().many()
+const activeOnly = await UserEntity.getItems().excludeDeleted().many() // Redundant - already excluded
+
+// Entity without soft deletes (includes all items)
+const AdminEntity = Entity(supabase, "users", {
+  softDelete: false, // No automatic filtering
+})
+```
+
+### Multi-Tenancy with Partition Keys
+
+Use partition keys to automatically scope queries to a tenant or partition:
+
+```typescript
+// Create a tenant-scoped entity
+const TenantPostEntity = Entity(supabase, "posts", {
+  softDelete: true,
+  partitionKey: { tenant_id: "tenant-123" }, // All queries automatically include this filter
+})
+
+// All queries are automatically scoped to the tenant
+const tenantPosts = await TenantPostEntity.getItems({
+  where: { status: "published" },
+}).many()
+// Equivalent to: WHERE tenant_id = 'tenant-123' AND status = 'published' AND deleted IS NULL
+
+// Create a global/admin entity (no partition)
+const GlobalPostEntity = Entity(supabase, "posts", {
+  softDelete: true,
+  // No partitionKey - queries all tenants
+})
+
+const allPosts = await GlobalPostEntity.getItems().many()
+// Equivalent to: WHERE deleted IS NULL
 ```
 
 ### Error Handling
@@ -186,16 +238,22 @@ const posts = await query(supabase, "posts", {
 - `filter(fn)` - Filter results with a predicate
 - `limit(n)` - Limit the number of results
 - `offset(n)` - Skip the first n results
+- `includeDeleted()` - Include soft-deleted items in results
+- `excludeDeleted()` - Exclude soft-deleted items from results
+- `onlyDeleted()` - Return only soft-deleted items
 
 ### Entity Methods
 
-- `getGlobalItems(params)` - Get all items with optional filters
-- `addGlobalItems({ items })` - Add multiple items
 - `getItem({ id, where?, is? })` - Get a single item by ID
-- `getItems(params)` - Get filtered items
+- `getItems({ where?, is?, wherein?, order? })` - Get filtered items
 - `addItems({ items })` - Add multiple items
-- `updateItem({ id, item, where?, is? })` - Update a single item
-- `updateItems({ items, identity?, where?, is? })` - Update multiple items
+- `updateItem({ id, item, where?, is?, wherein? })` - Update a single item
+- `updateItems({ items, identity?, where?, is?, wherein? })` - Update multiple items
+
+### Entity Configuration
+
+- `softDelete: boolean` - (Required) When `true`, automatically excludes soft-deleted items; when `false`, includes them
+- `partitionKey?: Record<string, unknown>` - (Optional) Automatically applies partition filtering (e.g., `{ tenant_id: "123" }` for multi-tenancy)
 
 ## Requirements
 
