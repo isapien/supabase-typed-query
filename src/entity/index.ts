@@ -1,9 +1,7 @@
 export type {
-  AddGlobalItemsParams,
   AddItemsParams,
   EntityConfig,
   EntityType,
-  GetGlobalItemsParams,
   GetItemParams,
   GetItemsParams,
   IdParam,

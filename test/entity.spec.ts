@@ -8,8 +8,6 @@ describe("Entity Types", () => {
     type TestTable = "test_table"
 
     const entityType: EntityType<TestTable> = {
-      getGlobalItems: expect.any(Function) as never,
-      addGlobalItems: expect.any(Function) as never,
       getItem: expect.any(Function) as never,
       getItems: expect.any(Function) as never,
       addItems: expect.any(Function) as never,
@@ -79,6 +77,21 @@ describe("Entity Types", () => {
     expect(configInclude.softDelete).toBe(false)
   })
 
+  it("should support partition key in EntityConfig", () => {
+    const configWithPartition: EntityConfig = {
+      softDelete: true,
+      partitionKey: { tenant_id: "123" },
+    }
+
+    const configWithoutPartition: EntityConfig = {
+      softDelete: false,
+    }
+
+    expect(configWithPartition).toBeDefined()
+    expect(configWithPartition.partitionKey).toEqual({ tenant_id: "123" })
+    expect(configWithoutPartition.partitionKey).toBeUndefined()
+  })
+
   it("should type check IEntity interface", () => {
     type TestTable = "test_table"
 
@@ -86,8 +99,6 @@ describe("Entity Types", () => {
     const mockFn = (() => {}) as never
 
     const entityInterface: IEntity<TestTable> = {
-      getGlobalItems: mockFn,
-      addGlobalItems: mockFn,
       getItem: mockFn,
       getItems: mockFn,
       addItems: mockFn,
@@ -96,7 +107,6 @@ describe("Entity Types", () => {
     }
 
     expect(entityInterface).toBeDefined()
-    expect(entityInterface.getGlobalItems).toBeDefined()
     expect(entityInterface.getItem).toBeDefined()
     expect(entityInterface.getItems).toBeDefined()
   })

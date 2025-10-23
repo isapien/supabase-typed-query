@@ -13,6 +13,8 @@ export type TypedRecord<T, V> = Partial<Record<keyof T, V>>
 export type EntityConfig = {
   /** Soft delete filtering. true = exclude deleted items, false = include deleted items */
   softDelete: boolean
+  /** Partition key for multi-tenant isolation. e.g., { tenant_id: "123" } */
+  partitionKey?: Record<string, unknown>
 }
 
 // Base parameter types with field-level type safety
@@ -37,15 +39,6 @@ export type IdParam = {
 }
 
 // Composable parameter types with field-level type safety
-export type GetGlobalItemsParams<T extends object = EmptyObject> = WhereParams<T> &
-  IsParams<T> &
-  WhereinParams<T> &
-  OrderParams<T>
-
-export type AddGlobalItemsParams<T extends TableNames> = {
-  items: TableInsert<T>[]
-}
-
 export type GetItemParams<T extends object = EmptyObject> = IdParam & WhereParams<T> & IsParams<T>
 
 export type GetItemsParams<T extends object = EmptyObject> = WhereParams<T> &
@@ -133,8 +126,6 @@ export function SingleMutationQuery<T>(promise: FPromise<TaskOutcome<T>>): Mutat
  * Base interface for Entity instances
  */
 export type IEntity<T extends TableNames> = {
-  getGlobalItems(params?: GetGlobalItemsParams<TableRow<T>>): Query<T>
-  addGlobalItems(params: AddGlobalItemsParams<T>): MutationMultiExecution<TableRow<T>>
   getItem(params: GetItemParams<TableRow<T>>): Query<T>
   getItems(params?: GetItemsParams<TableRow<T>>): Query<T>
   addItems(params: AddItemsParams<T>): MutationMultiExecution<TableRow<T>>
@@ -155,33 +146,6 @@ export const Entity = <T extends TableNames>(client: SupabaseClientType, name: T
   const softDeleteMode = config.softDelete ? "exclude" : "include"
 
   /**
-   * Retrieve all items from the given table, optionally filtered by conditions.
-   * Returns a Query<T> that can be chained with OR conditions and functional operations.
-   * @param {GetGlobalItemsParams<ROW>} [params] Parameters.
-   * @param {TypedRecord<ROW, unknown>} [params.where] Conditions to filter by.
-   * @param {TypedRecord<ROW, null | boolean>} [params.is] Additional conditions to filter by with IS.
-   * @param {TypedRecord<ROW, unknown[]>} [params.wherein] WHERE IN conditions to filter by.
-   * @param {[keyof ROW & string, { ascending?: boolean; nullsFirst?: boolean }]} [params.order] Optional ordering parameters.
-   * @returns {Query<T>} A chainable query that can be chained with OR conditions and functional operations.
-   */
-  function getGlobalItems({ where, is, wherein, order }: GetGlobalItemsParams<ROW> = {}): Query<T> {
-    return createQuery(client, name, where, is, wherein, order, {
-      mode: softDeleteMode,
-      appliedByDefault: true,
-    })
-  }
-
-  /**
-   * Adds multiple items to the given table.
-   * @param {AddGlobalItemsParams<T>} params Parameters.
-   * @param {TableInsert<T>[]} params.items The items to add.
-   * @returns {MutationMultiExecution<ROW>} A mutation query with consistent OrThrow methods.
-   */
-  function addGlobalItems({ items }: AddGlobalItemsParams<T>): MutationMultiExecution<ROW> {
-    return MultiMutationQuery(addEntities(client, name, items))
-  }
-
-  /**
    * Retrieve a single item from the given table by ID.
    * Returns a Query<T> that can be chained with OR conditions and functional operations.
    * @param {GetItemParams<ROW>} params Parameters.
@@ -191,10 +155,11 @@ export const Entity = <T extends TableNames>(client: SupabaseClientType, name: T
    * @returns {Query<T>} A chainable query that can be executed with .one(), .many(), or .first()
    */
   function getItem({ id, where, is }: GetItemParams<ROW>): Query<T> {
+    const whereWithPartition = config.partitionKey ? { ...config.partitionKey, ...where, id } : { ...where, id }
     return createQuery(
       client,
       name,
-      { ...where, id } as unknown as WhereConditions<TableRow<T>>,
+      whereWithPartition as unknown as WhereConditions<TableRow<T>>,
       is,
       undefined,
       undefined,
@@ -213,7 +178,8 @@ export const Entity = <T extends TableNames>(client: SupabaseClientType, name: T
    * @returns {Query<T>} A chainable query that can be executed with .one(), .many(), or .first()
    */
   function getItems({ where, is, wherein, order }: GetItemsParams<ROW> = {}): Query<T> {
-    return createQuery(client, name, where as WhereConditions<TableRow<T>>, is, wherein, order, {
+    const whereWithPartition = config.partitionKey ? { ...config.partitionKey, ...where } : where
+    return createQuery(client, name, whereWithPartition as WhereConditions<TableRow<T>>, is, wherein, order, {
       mode: softDeleteMode,
       appliedByDefault: true,
     })
@@ -266,8 +232,6 @@ export const Entity = <T extends TableNames>(client: SupabaseClientType, name: T
   }
 
   return {
-    getGlobalItems,
-    addGlobalItems,
     getItem,
     getItems,
     addItems,
