@@ -31,6 +31,7 @@ export type {
   QueryWhereinParams,
   QueryWhereParams,
   SingleExecution,
+  SoftDeleteMode,
   WhereConditions,
 } from "./query"
 export {
@@ -48,11 +49,13 @@ export {
 export type {
   AddGlobalItemsParams,
   AddItemsParams,
+  EntityConfig,
   EntityType,
   GetGlobalItemsParams,
   GetItemParams,
   GetItemsParams,
   IdParam,
+  IEntity,
   IsParams,
   MutationMultiExecution,
   MutationSingleExecution,
@@ -68,3 +71,7 @@ export { Entity, MultiMutationQuery, SingleMutationQuery } from "./entity"
 // Re-export functype utilities that are commonly used with this library
 export type { FPromise, TaskOutcome } from "functype"
 export { Err, List, Ok, Option } from "functype"
+
+// Error utilities
+export type { SupabaseErrorObject } from "./utils/errors"
+export { SupabaseError, toError } from "./utils/errors"

@@ -1,5 +1,6 @@
-import { addEntities, query, updateEntities, updateEntity } from "@/query"
+import { addEntities, updateEntities, updateEntity } from "@/query"
 import type { MultiExecution, Query, SingleExecution, WhereConditions } from "@/query/Query"
+import { createQuery } from "@/query/QueryBuilder"
 import type { EmptyObject, SupabaseClientType, TableInsert, TableNames, TableRow, TableUpdate } from "@/types"
 
 import type { FPromise, List, TaskOutcome } from "functype"
@@ -7,6 +8,12 @@ import { Option } from "functype"
 
 // Field-level type safety for queries
 export type TypedRecord<T, V> = Partial<Record<keyof T, V>>
+
+// Entity configuration
+export type EntityConfig = {
+  /** Soft delete filtering. true = exclude deleted items, false = include deleted items */
+  softDelete: boolean
+}
 
 // Base parameter types with field-level type safety
 export type WhereParams<T extends object = EmptyObject> = {
@@ -123,13 +130,29 @@ export function SingleMutationQuery<T>(promise: FPromise<TaskOutcome<T>>): Mutat
 }
 
 /**
+ * Base interface for Entity instances
+ */
+export type IEntity<T extends TableNames> = {
+  getGlobalItems(params?: GetGlobalItemsParams<TableRow<T>>): Query<T>
+  addGlobalItems(params: AddGlobalItemsParams<T>): MutationMultiExecution<TableRow<T>>
+  getItem(params: GetItemParams<TableRow<T>>): Query<T>
+  getItems(params?: GetItemsParams<TableRow<T>>): Query<T>
+  addItems(params: AddItemsParams<T>): MutationMultiExecution<TableRow<T>>
+  updateItem(params: UpdateItemParams<T, TableRow<T>>): MutationSingleExecution<TableRow<T>>
+  updateItems(params: UpdateItemsParams<T, TableRow<T>>): MutationMultiExecution<TableRow<T>>
+}
+
+/**
  * Creates an entity interface with methods for interacting with the given table.
  * @param client The Supabase client instance to use for queries.
  * @param name The name of the table to interact with.
+ * @param config Configuration for entity behavior (required).
  * @returns An object with methods for interacting with the table.
  */
-export const Entity = <T extends TableNames>(client: SupabaseClientType, name: T) => {
+export const Entity = <T extends TableNames>(client: SupabaseClientType, name: T, config: EntityConfig): IEntity<T> => {
   type ROW = TableRow<T>
+
+  const softDeleteMode = config.softDelete ? "exclude" : "include"
 
   /**
    * Retrieve all items from the given table, optionally filtered by conditions.
@@ -139,10 +162,13 @@ export const Entity = <T extends TableNames>(client: SupabaseClientType, name: T
    * @param {TypedRecord<ROW, null | boolean>} [params.is] Additional conditions to filter by with IS.
    * @param {TypedRecord<ROW, unknown[]>} [params.wherein] WHERE IN conditions to filter by.
    * @param {[keyof ROW & string, { ascending?: boolean; nullsFirst?: boolean }]} [params.order] Optional ordering parameters.
-   * @returns {Query<T>} A chainable query that can be executed with .one(), .many(), or .first()
+   * @returns {Query<T>} A chainable query that can be chained with OR conditions and functional operations.
    */
   function getGlobalItems({ where, is, wherein, order }: GetGlobalItemsParams<ROW> = {}): Query<T> {
-    return query(client, name, where, is, wherein, order)
+    return createQuery(client, name, where, is, wherein, order, {
+      mode: softDeleteMode,
+      appliedByDefault: true,
+    })
   }
 
   /**
@@ -165,7 +191,15 @@ export const Entity = <T extends TableNames>(client: SupabaseClientType, name: T
    * @returns {Query<T>} A chainable query that can be executed with .one(), .many(), or .first()
    */
   function getItem({ id, where, is }: GetItemParams<ROW>): Query<T> {
-    return query(client, name, { ...where, id } as unknown as WhereConditions<TableRow<T>>, is)
+    return createQuery(
+      client,
+      name,
+      { ...where, id } as unknown as WhereConditions<TableRow<T>>,
+      is,
+      undefined,
+      undefined,
+      { mode: softDeleteMode, appliedByDefault: true },
+    )
   }
 
   /**
@@ -179,7 +213,10 @@ export const Entity = <T extends TableNames>(client: SupabaseClientType, name: T
    * @returns {Query<T>} A chainable query that can be executed with .one(), .many(), or .first()
    */
   function getItems({ where, is, wherein, order }: GetItemsParams<ROW> = {}): Query<T> {
-    return query(client, name, where as WhereConditions<TableRow<T>>, is, wherein, order)
+    return createQuery(client, name, where as WhereConditions<TableRow<T>>, is, wherein, order, {
+      mode: softDeleteMode,
+      appliedByDefault: true,
+    })
   }
 
   /**
@@ -241,5 +278,6 @@ export const Entity = <T extends TableNames>(client: SupabaseClientType, name: T
 
 /**
  * Type for an entity instance for a specific table
+ * @deprecated Use IEntity<T> instead
  */
-export type EntityType<T extends TableNames> = ReturnType<typeof Entity<T>>
+export type EntityType<T extends TableNames> = IEntity<T>

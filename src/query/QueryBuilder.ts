@@ -1,4 +1,5 @@
 import type { SupabaseClientType, TableNames, TableRow } from "@/types"
+import { toError } from "@/utils/errors"
 
 import type { Brand, FPromise, TaskOutcome } from "functype"
 import { Err, List, Ok, Option } from "functype"
@@ -184,15 +185,30 @@ export const QueryBuilder = <T extends TableNames>(
     const mergedLike = { ...like, ...extractedOperators.like }
     const mergedIlike = { ...ilike, ...extractedOperators.ilike }
 
-    // Apply WHERE conditions and soft delete filter in the same chain
-    const baseQuery = !TABLES_WITHOUT_DELETED.has(config.table)
-      ? query.select("*").match(processedWhere).is("deleted", null)
-      : query.select("*").match(processedWhere)
+    // Apply WHERE conditions
+    const baseQuery = query.select("*").match(processedWhere)
+
+    // Apply soft delete filter based on softDeleteMode
+    const queryWithSoftDelete = (() => {
+      if (TABLES_WITHOUT_DELETED.has(config.table)) {
+        return baseQuery
+      }
+      if (config.softDeleteMode === "exclude") {
+        return baseQuery.is("deleted", null)
+      }
+      if (config.softDeleteMode === "only") {
+        return baseQuery.not("deleted", "is", null)
+      }
+      // Default: "include" - no filter
+      return baseQuery
+    })()
 
     // Apply WHERE IN conditions
     const queryWithWhereIn = wherein
-      ? List(Object.entries(wherein)).foldLeft(baseQuery)((q, [column, values]) => q.in(column, values as never))
-      : baseQuery
+      ? List(Object.entries(wherein)).foldLeft(queryWithSoftDelete)((q, [column, values]) =>
+          q.in(column, values as never),
+        )
+      : queryWithSoftDelete
 
     // Apply IS conditions
     const queryWithIs = is
@@ -246,10 +262,23 @@ export const QueryBuilder = <T extends TableNames>(
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const applyOrConditions = (query: any, conditions: QueryCondition<T>[]): any => {
-    // Start with select and apply soft delete filter if table supports it
-    const baseQuery = !TABLES_WITHOUT_DELETED.has(config.table)
-      ? query.select("*").is("deleted", null)
-      : query.select("*")
+    // Start with select
+    const selectQuery = query.select("*")
+
+    // Apply soft delete filter based on softDeleteMode
+    const baseQuery = (() => {
+      if (TABLES_WITHOUT_DELETED.has(config.table)) {
+        return selectQuery
+      }
+      if (config.softDeleteMode === "exclude") {
+        return selectQuery.is("deleted", null)
+      }
+      if (config.softDeleteMode === "only") {
+        return selectQuery.not("deleted", "is", null)
+      }
+      // Default: "include" - no filter
+      return selectQuery
+    })()
 
     // Separate common conditions from varying conditions
     const commonConditions = new Map<string, unknown>()
@@ -466,6 +495,45 @@ export const QueryBuilder = <T extends TableNames>(
     },
 
     /**
+     * Include all records (no soft delete filter)
+     */
+    includeDeleted: (): Query<T> => {
+      if (config.softDeleteAppliedByDefault && config.softDeleteMode === "include") {
+        log.warn(`[${config.table}] includeDeleted() called but already including deleted by default`)
+      }
+      return QueryBuilder(client, {
+        ...config,
+        softDeleteMode: "include",
+        softDeleteAppliedByDefault: false,
+      })
+    },
+
+    /**
+     * Exclude soft-deleted records (apply deleted IS NULL filter)
+     */
+    excludeDeleted: (): Query<T> => {
+      if (config.softDeleteAppliedByDefault && config.softDeleteMode === "exclude") {
+        log.warn(`[${config.table}] excludeDeleted() called but already excluding deleted by default`)
+      }
+      return QueryBuilder(client, {
+        ...config,
+        softDeleteMode: "exclude",
+        softDeleteAppliedByDefault: false,
+      })
+    },
+
+    /**
+     * Query only soft-deleted records (apply deleted IS NOT NULL filter)
+     */
+    onlyDeleted: (): Query<T> => {
+      return QueryBuilder(client, {
+        ...config,
+        softDeleteMode: "only",
+        softDeleteAppliedByDefault: false,
+      })
+    },
+
+    /**
      * Execute query expecting exactly one result
      */
     one: (): FPromise<TaskOutcome<Option<TableRow<T>>>> => {
@@ -475,8 +543,8 @@ export const QueryBuilder = <T extends TableNames>(
           const { data, error } = await query.single()
 
           if (error) {
-            log.error(`Error getting ${config.table} item: ${String(error)}`)
-            return Err<Option<TableRow<T>>>(error)
+            log.error(`Error getting ${config.table} item: ${toError(error).toString()}`)
+            return Err<Option<TableRow<T>>>(toError(error))
           }
 
           const result = data as TableRow<T>
@@ -488,8 +556,8 @@ export const QueryBuilder = <T extends TableNames>(
 
           return Ok(Option(result))
         } catch (error) {
-          log.error(`Error executing single query on ${config.table}: ${String(error)}`)
-          return Err<Option<TableRow<T>>>(error as Error)
+          log.error(`Error executing single query on ${config.table}: ${toError(error).toString()}`)
+          return Err<Option<TableRow<T>>>(toError(error))
         }
       })
     },
@@ -504,8 +572,8 @@ export const QueryBuilder = <T extends TableNames>(
           const { data, error } = await query
 
           if (error) {
-            log.error(`Error getting ${config.table} items: ${String(error)}`)
-            return Err<List<TableRow<T>>>(error)
+            log.error(`Error getting ${config.table} items: ${toError(error).toString()}`)
+            return Err<List<TableRow<T>>>(toError(error))
           }
 
           const rawResults = data as TableRow<T>[]
@@ -515,8 +583,8 @@ export const QueryBuilder = <T extends TableNames>(
 
           return Ok(List(results))
         } catch (error) {
-          log.error(`Error executing multi query on ${config.table}: ${String(error)}`)
-          return Err<List<TableRow<T>>>(error as Error)
+          log.error(`Error executing multi query on ${config.table}: ${toError(error).toString()}`)
+          return Err<List<TableRow<T>>>(toError(error))
         }
       })
     },
@@ -648,11 +716,14 @@ export const createQuery = <T extends TableNames>(
   is?: IsConditions<TableRow<T>>,
   wherein?: Partial<Record<keyof TableRow<T>, unknown[]>>,
   order?: [keyof TableRow<T> & string, { ascending?: boolean; nullsFirst?: boolean }],
+  softDeleteConfig?: { mode?: "include" | "exclude" | "only"; appliedByDefault?: boolean },
 ): Query<T> => {
   const config: QueryBuilderConfig<T> = {
     table,
     conditions: [{ where, is, wherein }],
     order,
+    softDeleteMode: softDeleteConfig?.mode,
+    softDeleteAppliedByDefault: softDeleteConfig?.appliedByDefault,
   }
   return QueryBuilder(client, config)
 }

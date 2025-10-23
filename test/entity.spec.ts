@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import type { EntityType, IdParam, TypedRecord, WhereParams } from "../src/entity"
+import type { EntityConfig, EntityType, IdParam, IEntity, TypedRecord, WhereParams } from "../src/entity"
 
 describe("Entity Types", () => {
   it("should define proper entity type structure", () => {
@@ -62,5 +62,42 @@ describe("Entity Types", () => {
     expect(record).toBeDefined()
     expect(record.id).toBe("test")
     expect(record.value).toBe(42)
+  })
+
+  it("should type check EntityConfig", () => {
+    const configExclude: EntityConfig = {
+      softDelete: true,
+    }
+
+    const configInclude: EntityConfig = {
+      softDelete: false,
+    }
+
+    expect(configExclude).toBeDefined()
+    expect(configInclude).toBeDefined()
+    expect(configExclude.softDelete).toBe(true)
+    expect(configInclude.softDelete).toBe(false)
+  })
+
+  it("should type check IEntity interface", () => {
+    type TestTable = "test_table"
+
+    // IEntity should have all required methods - just test type compatibility
+    const mockFn = (() => {}) as never
+
+    const entityInterface: IEntity<TestTable> = {
+      getGlobalItems: mockFn,
+      addGlobalItems: mockFn,
+      getItem: mockFn,
+      getItems: mockFn,
+      addItems: mockFn,
+      updateItem: mockFn,
+      updateItems: mockFn,
+    }
+
+    expect(entityInterface).toBeDefined()
+    expect(entityInterface.getGlobalItems).toBeDefined()
+    expect(entityInterface.getItem).toBeDefined()
+    expect(entityInterface.getItems).toBeDefined()
   })
 })

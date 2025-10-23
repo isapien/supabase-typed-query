@@ -33,6 +33,9 @@ export type WhereConditions<T extends object> = Partial<{
 // Enhanced type for IS conditions with field-level type safety
 export type IsConditions<T extends object = EmptyObject> = Partial<Record<keyof T, null | boolean>>
 
+// Soft delete mode for controlling how deleted records are handled
+export type SoftDeleteMode = "include" | "exclude" | "only"
+
 // =============================================================================
 // Standard Execution Interfaces for Consistent OrThrow Pattern
 // =============================================================================
@@ -98,6 +101,11 @@ export interface Query<T extends TableNames> {
   // Pagination
   limit(count: number): Query<T>
   offset(count: number): Query<T>
+
+  // Soft delete filtering
+  includeDeleted(): Query<T>
+  excludeDeleted(): Query<T>
+  onlyDeleted(): Query<T>
 }
 
 // Mapped query for transformed results
@@ -188,4 +196,6 @@ export interface QueryBuilderConfig<T extends TableNames> {
   filterFn?: (item: TableRow<T>) => boolean
   limit?: number
   offset?: number
+  softDeleteMode?: SoftDeleteMode
+  softDeleteAppliedByDefault?: boolean
 }

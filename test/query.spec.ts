@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import type { ComparisonOperators, WhereConditions } from "../src/query"
+import type { ComparisonOperators, SoftDeleteMode, WhereConditions } from "../src/query"
 
 describe("Query Types", () => {
   it("should allow basic where conditions", () => {
@@ -62,5 +62,25 @@ describe("Query Types", () => {
 
     expect(validOperator).toBeDefined()
     expect(validOperator.gte).toBe(5)
+  })
+
+  it("should allow soft delete mode values", () => {
+    const includeMode: SoftDeleteMode = "include"
+    const excludeMode: SoftDeleteMode = "exclude"
+    const onlyMode: SoftDeleteMode = "only"
+
+    expect(includeMode).toBe("include")
+    expect(excludeMode).toBe("exclude")
+    expect(onlyMode).toBe("only")
+  })
+
+  it("should type check soft delete mode", () => {
+    // Type should only accept the three valid values
+    const validModes: SoftDeleteMode[] = ["include", "exclude", "only"]
+
+    expect(validModes).toHaveLength(3)
+    expect(validModes).toContain("include")
+    expect(validModes).toContain("exclude")
+    expect(validModes).toContain("only")
   })
 })

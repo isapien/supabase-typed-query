@@ -1,4 +1,5 @@
 import type { EmptyObject, SupabaseClientType, TableInsert, TableNames, TableRow, TableUpdate } from "@/types"
+import { toError } from "@/utils/errors"
 
 import type { FPromise, TaskOutcome } from "functype"
 import { Err, List, Ok } from "functype"
@@ -22,6 +23,7 @@ export type {
   QueryWhereinParams,
   QueryWhereParams,
   SingleExecution,
+  SoftDeleteMode,
   WhereConditions,
 } from "./Query"
 
@@ -64,12 +66,12 @@ export const getEntity = <T extends TableNames>(
       const { data, error } = await queryWithIs.single()
 
       if (error) {
-        return Err<TableRow<T>>(error)
+        return Err<TableRow<T>>(toError(error))
       }
 
       return Ok(data as TableRow<T>)
     } catch (error) {
-      return Err<TableRow<T>>(error as Error)
+      return Err<TableRow<T>>(toError(error))
     }
   })
 
@@ -116,12 +118,12 @@ export const getEntities = <T extends TableNames>(
       const { data, error } = await queryOrderBy
 
       if (error) {
-        return Err<List<TableRow<T>>>(error as Error)
+        return Err<List<TableRow<T>>>(toError(error))
       }
 
       return Ok(List(data as TableRow<T>[]))
     } catch (error) {
-      return Err<List<TableRow<T>>>(error as Error)
+      return Err<List<TableRow<T>>>(toError(error))
     }
   })
 
@@ -146,12 +148,12 @@ export const addEntities = <T extends TableNames>(
         .select()
 
       if (error) {
-        return Err<List<TableRow<T>>>(error as Error)
+        return Err<List<TableRow<T>>>(toError(error))
       }
 
       return Ok(List(data as unknown as TableRow<T>[]))
     } catch (error) {
-      return Err<List<TableRow<T>>>(error as Error)
+      return Err<List<TableRow<T>>>(toError(error))
     }
   })
 
@@ -196,12 +198,12 @@ export const updateEntity = <T extends TableNames>(
       const { data, error } = await queryWithIs.select().single()
 
       if (error) {
-        return Err<TableRow<T>>(error)
+        return Err<TableRow<T>>(toError(error))
       }
 
       return Ok(data as TableRow<T>)
     } catch (error) {
-      return Err<TableRow<T>>(error as Error)
+      return Err<TableRow<T>>(toError(error))
     }
   })
 
@@ -250,12 +252,12 @@ export const updateEntities = <T extends TableNames>(
       const { data, error } = await queryWithIs.select()
 
       if (error) {
-        return Err<List<TableRow<T>>>(error as Error)
+        return Err<List<TableRow<T>>>(toError(error))
       }
 
       return Ok(List(data as TableRow<T>[]))
     } catch (error) {
-      return Err<List<TableRow<T>>>(error as Error)
+      return Err<List<TableRow<T>>>(toError(error))
     }
   })
 

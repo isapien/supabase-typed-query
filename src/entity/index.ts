@@ -1,10 +1,13 @@
 export type {
   AddGlobalItemsParams,
   AddItemsParams,
+  EntityConfig,
+  EntityType,
   GetGlobalItemsParams,
   GetItemParams,
   GetItemsParams,
   IdParam,
+  IEntity,
   IsParams,
   MutationMultiExecution,
   MutationSingleExecution,
@@ -15,4 +18,4 @@ export type {
   WhereinParams,
   WhereParams,
 } from "./Entity"
-export { Entity, type EntityType, MultiMutationQuery, SingleMutationQuery } from "./Entity"
+export { Entity, MultiMutationQuery, SingleMutationQuery } from "./Entity"
