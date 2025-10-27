@@ -7,10 +7,11 @@ import { Err, List, Ok, Option } from "functype"
 import type { IsConditions, MappedQuery, Query, QueryBuilderConfig, QueryCondition, WhereConditions } from "./Query"
 
 // Simple console logging for open source version
+// Suppress logs during tests to avoid stderr noise in test output
 const log = {
-  error: (msg: string) => console.error(`[supabase-typed-query] ${msg}`),
-  warn: (msg: string) => console.warn(`[supabase-typed-query] ${msg}`),
-  info: (msg: string) => console.info(`[supabase-typed-query] ${msg}`),
+  error: (msg: string) => process.env.NODE_ENV !== "test" && console.error(`[supabase-typed-query] ${msg}`),
+  warn: (msg: string) => process.env.NODE_ENV !== "test" && console.warn(`[supabase-typed-query] ${msg}`),
+  info: (msg: string) => process.env.NODE_ENV !== "test" && console.info(`[supabase-typed-query] ${msg}`),
 }
 
 // Tables that don't have a deleted field (like version tracking tables)
