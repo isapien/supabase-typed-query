@@ -10,12 +10,7 @@ export default defineConfig({
     include: ["**/*.integration.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
     exclude: ["**/node_modules/**", "**/dist/**"],
     // Sequential execution to avoid database conflicts
-    pool: "forks",
-    poolOptions: {
-      forks: {
-        singleFork: true,
-      },
-    },
+    maxConcurrency: 1,
     testTimeout: 30000,
     setupFiles: ["./test/integration/setup.ts"],
   },
