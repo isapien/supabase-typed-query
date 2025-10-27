@@ -25,6 +25,8 @@ coverage/
 .env
 .env.local
 .env.*.local
+.env.test
+.env.integration
 
 # Logs
 logs/

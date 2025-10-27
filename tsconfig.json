@@ -26,6 +26,6 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src/**/*", "test/**/*"],
+  "include": ["src/**/*", "test/**/*", "vitest.config.ts", "vitest.config.integration.ts", "vite.config.ts"],
   "exclude": ["node_modules", "dist", "examples"]
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import type { ComparisonOperators, SoftDeleteMode, WhereConditions } from "../src/query"
+import type { ComparisonOperators, SoftDeleteMode, WhereConditions } from "@/query"
 
 describe("Query Types", () => {
   it("should allow basic where conditions", () => {

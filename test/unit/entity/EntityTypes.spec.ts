@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import type { EntityConfig, EntityType, IdParam, IEntity, TypedRecord, WhereParams } from "../src/entity"
+import type { EntityConfig, EntityType, IdParam, IEntity, TypedRecord, WhereParams } from "@/entity"
 
 describe("Entity Types", () => {
   it("should define proper entity type structure", () => {

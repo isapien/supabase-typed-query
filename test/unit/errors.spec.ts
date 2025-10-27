@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { SupabaseError, type SupabaseErrorObject, toError } from "../src/utils/errors"
+import { SupabaseError, type SupabaseErrorObject, toError } from "@/utils/errors"
 
 describe("Error Handling", () => {
   it("should convert Supabase error objects to SupabaseError", () => {
