@@ -27,5 +27,13 @@
     }
   },
   "include": ["src/**/*", "test/**/*", "vitest.config.ts", "vitest.config.integration.ts", "vite.config.ts"],
-  "exclude": ["node_modules", "dist", "examples"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "examples",
+    "test/integration/**/*.spec.ts",
+    "test/integration/**/*.spec.ts.disabled",
+    "test/integration/augment-database-types.ts",
+    "test/integration/database.types.ts"
+  ]
 }

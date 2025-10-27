@@ -60,7 +60,11 @@
     "build:dev": "vite build --emptyOutDir",
     "build:dev:watch": "vite build --watch --emptyOutDir",
     "build:publish": "pnpm validate && pnpm publish --no-git-checks",
-    "prepublishOnly": "pnpm validate"
+    "prepublishOnly": "pnpm validate",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:status": "supabase status",
+    "supabase:types": "supabase gen types typescript --local > test/integration/database.types.ts"
   },
   "peerDependencies": {
     "@supabase/supabase-js": "^2.0.0",

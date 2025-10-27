@@ -2,7 +2,7 @@
  * Core type definitions for supabase-typed-query
  */
 
-// Database types placeholder - will be provided by consumer
+// Database types placeholder - will be provided by consumer via module augmentation
 export interface Database {
   public: {
     Tables: Record<
@@ -13,6 +13,10 @@ export interface Database {
         Update: Record<string, unknown>
       }
     >
+    Views: Record<string, { Row: Record<string, unknown> }>
+    Functions: Record<string, { Args: Record<string, unknown>; Returns: unknown }>
+    Enums: Record<string, unknown>
+    CompositeTypes: Record<string, unknown>
   }
 }
 

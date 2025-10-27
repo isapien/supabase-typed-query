@@ -159,6 +159,109 @@ export class DatabaseSetup {
     }
   }
 
+  /**
+   * Create multiple test users for batch testing
+   */
+  async createTestUsers(count: number): Promise<string[]> {
+    if (!this.client) {
+      throw new Error("Database not initialized")
+    }
+
+    const usersToCreate = Array.from({ length: count }, (_, i) => ({
+      name: `Test User ${i + 1}`,
+      email: `test_user_${i + 1}@example.com`,
+      age: 20 + i,
+      active: i % 2 === 0, // Alternate active/inactive
+      role: i % 3 === 0 ? "admin" : i % 3 === 1 ? "moderator" : "user",
+    }))
+
+    const { data: users, error } = await this.client.from("users").insert(usersToCreate).select()
+
+    if (error || !users || !Array.isArray(users)) {
+      throw new Error(`Failed to create test users: ${(error as { message?: string })?.message ?? "Unknown error"}`)
+    }
+
+    return users.map((u) => (u as { id: string }).id)
+  }
+
+  /**
+   * Create multiple test posts for batch testing
+   */
+  async createTestPosts(authorId: string, count: number): Promise<string[]> {
+    if (!this.client) {
+      throw new Error("Database not initialized")
+    }
+
+    const postsToCreate = Array.from({ length: count }, (_, i) => ({
+      title: `Test Post ${i + 1}`,
+      content: `Test content for post ${i + 1}`,
+      author_id: authorId,
+      status: i % 3 === 0 ? "draft" : i % 3 === 1 ? "published" : "archived",
+      view_count: i * 10,
+      published_at: i % 3 === 1 ? new Date().toISOString() : null,
+    }))
+
+    const { data: posts, error } = await this.client.from("posts").insert(postsToCreate).select()
+
+    if (error || !posts || !Array.isArray(posts)) {
+      throw new Error(`Failed to create test posts: ${(error as { message?: string })?.message ?? "Unknown error"}`)
+    }
+
+    return posts.map((p) => (p as { id: string }).id)
+  }
+
+  /**
+   * Create test data with soft deletes for testing soft delete functionality
+   */
+  async createSoftDeleteTestData(): Promise<{ activeId: string; deletedId: string }> {
+    if (!this.client) {
+      throw new Error("Database not initialized")
+    }
+
+    // Create active user
+    const { data: activeUsers, error: activeError } = await this.client
+      .from("users")
+      .insert({
+        name: "Test Active User",
+        email: "test_active@example.com",
+        age: 25,
+        active: true,
+        role: "user",
+        deleted: null,
+      })
+      .select()
+
+    if (activeError || !activeUsers || !Array.isArray(activeUsers) || activeUsers.length === 0) {
+      throw new Error(
+        `Failed to create active user: ${(activeError as { message?: string })?.message ?? "Unknown error"}`,
+      )
+    }
+
+    // Create soft-deleted user
+    const { data: deletedUsers, error: deletedError } = await this.client
+      .from("users")
+      .insert({
+        name: "Test Deleted User",
+        email: "test_deleted@example.com",
+        age: 30,
+        active: false,
+        role: "user",
+        deleted: new Date().toISOString(),
+      })
+      .select()
+
+    if (deletedError || !deletedUsers || !Array.isArray(deletedUsers) || deletedUsers.length === 0) {
+      throw new Error(
+        `Failed to create deleted user: ${(deletedError as { message?: string })?.message ?? "Unknown error"}`,
+      )
+    }
+
+    return {
+      activeId: (activeUsers[0] as { id: string }).id,
+      deletedId: (deletedUsers[0] as { id: string }).id,
+    }
+  }
+
   private getTestDatabaseUrl(): string | undefined {
     return (
       // PostgREST for CI

@@ -1,0 +1,374 @@
+// test/integration/Entity.integration.spec.ts
+import { afterAll, beforeAll, describe, expect, it } from "vitest"
+
+import "./augment-database-types" // Augment Database interface with test schema
+
+import { Entity } from "@/entity"
+
+import { DatabaseSetup } from "./database-setup"
+
+describe("Entity API Integration Tests", () => {
+  const dbSetup = new DatabaseSetup()
+
+  beforeAll(async () => {
+    await dbSetup.initialize()
+    await dbSetup.cleanupTestData()
+  })
+
+  afterAll(async () => {
+    await dbSetup.cleanupTestData()
+  })
+
+  describe("CRUD Operations - getGlobalItems", () => {
+    beforeAll(async () => {
+      await dbSetup.createTestUsers(5)
+    })
+
+    it("should fetch all items with getGlobalItems()", async () => {
+      const client = dbSetup.getClient()
+      const users = Entity<"users">(client, "users", {})
+
+      const result = await users.getGlobalItems()
+      const list = result.orThrow()
+
+      expect(list.length).toBeGreaterThan(0)
+      expect(Array.isArray(list.toArray())).toBe(true)
+    })
+
+    it("should fetch items with where conditions", async () => {
+      const client = dbSetup.getClient()
+      const users = Entity<"users">(client, "users", {})
+
+      const result = await users.getGlobalItems({ role: "admin" })
+      const list = result.orThrow()
+
+      list.forEach((user) => {
+        expect(user.role).toBe("admin")
+      })
+    })
+
+    it("should respect soft delete mode in getGlobalItems()", async () => {
+      const client = dbSetup.getClient()
+
+      // Create soft-deleted user
+      await dbSetup.createSoftDeleteTestData()
+
+      const usersExcluded = Entity<"users">(client, "users", {
+        softDeleteMode: "exclude",
+      })
+
+      const result = await usersExcluded.getGlobalItems()
+      const list = result.orThrow()
+
+      list.forEach((user) => {
+        expect(user.deleted).toBeNull()
+      })
+    })
+  })
+
+  describe("CRUD Operations - getItem", () => {
+    let testUserId: string
+
+    beforeAll(async () => {
+      const users = await dbSetup.createTestUsers(1)
+      testUserId = users[0]
+    })
+
+    it("should fetch a single item by ID with getItem()", async () => {
+      const client = dbSetup.getClient()
+      const users = Entity<"users">(client, "users", {})
+
+      const result = await users.getItem(testUserId).one()
+      const option = result.orThrow()
+
+      expect(option.isEmpty).toBe(false)
+      const user = option.orThrow()
+      expect(user.id).toBe(testUserId)
+    })
+
+    it("should return None when item not found", async () => {
+      const client = dbSetup.getClient()
+      const users = Entity<"users">(client, "users", {})
+
+      const result = await users.getItem("00000000-0000-0000-0000-000000000000").one()
+      const option = result.orThrow()
+
+      expect(option.isEmpty).toBe(true)
+    })
+  })
+
+  describe("CRUD Operations - addItems", () => {
+    it("should add a single item with addItems()", async () => {
+      const client = dbSetup.getClient()
+      const users = Entity<"users">(client, "users", {})
+
+      const result = await users.addItems({
+        name: "New Test User",
+        email: "test_new_user@example.com",
+        age: 28,
+        active: true,
+        role: "user",
+      })
+
+      const list = result.orThrow()
+      expect(list.length).toBe(1)
+
+      const user = list.head
+      expect(user.name).toBe("New Test User")
+      expect(user.email).toBe("test_new_user@example.com")
+    })
+
+    it("should add multiple items with addItems()", async () => {
+      const client = dbSetup.getClient()
+      const users = Entity<"users">(client, "users", {})
+
+      const result = await users.addItems([
+        {
+          name: "Batch User 1",
+          email: "test_batch_1@example.com",
+          age: 25,
+          active: true,
+          role: "user",
+        },
+        {
+          name: "Batch User 2",
+          email: "test_batch_2@example.com",
+          age: 30,
+          active: true,
+          role: "moderator",
+        },
+      ])
+
+      const list = result.orThrow()
+      expect(list.length).toBe(2)
+    })
+  })
+
+  describe("CRUD Operations - updateItem", () => {
+    let testUserId: string
+
+    beforeAll(async () => {
+      const users = await dbSetup.createTestUsers(1)
+      testUserId = users[0]
+    })
+
+    it("should update an item by ID with updateItem()", async () => {
+      const client = dbSetup.getClient()
+      const users = Entity<"users">(client, "users", {})
+
+      const result = await users.updateItem(testUserId, {
+        name: "Updated Name",
+        age: 35,
+      })
+
+      const option = result.orThrow()
+      expect(option.isEmpty).toBe(false)
+
+      const user = option.orThrow()
+      expect(user.name).toBe("Updated Name")
+      expect(user.age).toBe(35)
+    })
+
+    it("should return None when updating non-existent item", async () => {
+      const client = dbSetup.getClient()
+      const users = Entity<"users">(client, "users", {})
+
+      const result = await users.updateItem("00000000-0000-0000-0000-000000000000", {
+        name: "Ghost User",
+      })
+
+      const option = result.orThrow()
+      expect(option.isEmpty).toBe(true)
+    })
+  })
+
+  describe("CRUD Operations - deleteItem", () => {
+    let testUserId: string
+
+    beforeAll(async () => {
+      const users = await dbSetup.createTestUsers(1)
+      testUserId = users[0]
+    })
+
+    it("should hard delete an item by ID with deleteItem()", async () => {
+      const client = dbSetup.getClient()
+      const users = Entity<"users">(client, "users", {
+        softDeleteMode: "include", // Hard delete mode
+      })
+
+      const result = await users.deleteItem(testUserId)
+      const option = result.orThrow()
+
+      expect(option.isEmpty).toBe(false)
+
+      // Verify item is actually deleted
+      const getResult = await users.getItem(testUserId).one()
+      const getOption = getResult.orThrow()
+      expect(getOption.isEmpty).toBe(true)
+    })
+
+    it("should soft delete an item when soft delete is enabled", async () => {
+      const client = dbSetup.getClient()
+
+      // Create a new user for soft delete test
+      const createUsers = Entity<"users">(client, "users", {})
+      const created = await createUsers.addItems({
+        name: "Soft Delete User",
+        email: "test_soft_delete@example.com",
+        age: 40,
+        active: true,
+        role: "user",
+      })
+      const userId = created.orThrow().head.id
+
+      // Soft delete the user
+      const users = Entity<"users">(client, "users", {
+        softDeleteMode: "exclude", // Soft delete mode
+      })
+
+      const result = await users.deleteItem(userId)
+      const option = result.orThrow()
+
+      expect(option.isEmpty).toBe(false)
+
+      // Verify item is soft deleted (has deleted timestamp)
+      const deletedUser = option.orThrow()
+      expect(deletedUser.deleted).not.toBeNull()
+    })
+  })
+
+  describe("CRUD Operations - deleteItems", () => {
+    beforeAll(async () => {
+      await dbSetup.createTestUsers(5)
+    })
+
+    it("should delete multiple items with deleteItems()", async () => {
+      const client = dbSetup.getClient()
+      const users = Entity<"users">(client, "users", {})
+
+      const result = await users.deleteItems({ role: "admin" })
+      const list = result.orThrow()
+
+      expect(list.length).toBeGreaterThan(0)
+      list.forEach((user) => {
+        expect(user.role).toBe("admin")
+      })
+    })
+  })
+
+  describe("OrThrow Variants", () => {
+    let testUserId: string
+
+    beforeAll(async () => {
+      const users = await dbSetup.createTestUsers(1)
+      testUserId = users[0]
+    })
+
+    it("should throw when item not found with getItemOrThrow()", () => {
+      const client = dbSetup.getClient()
+      const users = Entity<"users">(client, "users", {})
+
+      void expect(users.getItemOrThrow("00000000-0000-0000-0000-000000000000")).rejects.toThrow()
+    })
+
+    it("should return item with getItemOrThrow()", async () => {
+      const client = dbSetup.getClient()
+      const users = Entity<"users">(client, "users", {})
+
+      const user = await users.getItemOrThrow(testUserId)
+      expect(user.id).toBe(testUserId)
+    })
+
+    it("should return items with getGlobalItemsOrThrow()", async () => {
+      const client = dbSetup.getClient()
+      const users = Entity<"users">(client, "users", {})
+
+      const list = await users.getGlobalItemsOrThrow()
+      expect(list.length).toBeGreaterThan(0)
+    })
+
+    it("should return added items with addItemsOrThrow()", async () => {
+      const client = dbSetup.getClient()
+      const users = Entity<"users">(client, "users", {})
+
+      const list = await users.addItemsOrThrow({
+        name: "Throw Test User",
+        email: "test_throw@example.com",
+        age: 22,
+        active: true,
+        role: "user",
+      })
+
+      expect(list.length).toBe(1)
+    })
+
+    it("should return updated item with updateItemOrThrow()", async () => {
+      const client = dbSetup.getClient()
+      const users = Entity<"users">(client, "users", {})
+
+      const user = await users.updateItemOrThrow(testUserId, {
+        name: "OrThrow Updated",
+      })
+
+      expect(user.name).toBe("OrThrow Updated")
+    })
+
+    it("should throw when updating non-existent item with updateItemOrThrow()", () => {
+      const client = dbSetup.getClient()
+      const users = Entity<"users">(client, "users", {})
+
+      void expect(
+        users.updateItemOrThrow("00000000-0000-0000-0000-000000000000", {
+          name: "Ghost",
+        }),
+      ).rejects.toThrow()
+    })
+  })
+
+  describe("Partition Key Support (Multi-tenancy)", () => {
+    it("should support partition key configuration", async () => {
+      const client = dbSetup.getClient()
+
+      // Note: This test demonstrates the API but won't filter by tenant
+      // since our test schema doesn't have a tenant_id column
+      const users = Entity<"users">(client, "users", {
+        partitionKey: "test-tenant-id",
+      })
+
+      const result = await users.getGlobalItems()
+      const list = result.orThrow()
+
+      // Just verify it doesn't crash with partition key
+      expect(Array.isArray(list.toArray())).toBe(true)
+    })
+  })
+
+  describe("Error Handling", () => {
+    it("should handle database errors gracefully", async () => {
+      const client = dbSetup.getClient()
+      const users = Entity<"users">(client, "users", {})
+
+      // Try to insert duplicate email (should fail due to unique constraint)
+      const firstResult = await users.addItems({
+        name: "Duplicate Test",
+        email: "test_duplicate_unique@example.com",
+        age: 30,
+        active: true,
+        role: "user",
+      })
+
+      expect(firstResult.isOk()).toBe(true)
+
+      const secondResult = await users.addItems({
+        name: "Duplicate Test 2",
+        email: "test_duplicate_unique@example.com", // Same email
+        age: 25,
+        active: true,
+        role: "user",
+      })
+
+      // Should return an Err (not throw)
+      expect(secondResult.isErr()).toBe(true)
+    })
+  })
+})

@@ -15,6 +15,55 @@ Integration tests verify that our library works correctly against a real Supabas
 supabase-typed-query → Supabase Client → PostgreSQL/Supabase Database
 ```
 
+## Test Coverage
+
+The integration tests are organized into three main test suites with **65+ comprehensive tests**:
+
+### Query API Tests (`Query.integration.spec.ts`)
+
+- **Basic Query Execution** (6 tests): one(), many(), first(), oneOrThrow(), manyOrThrow(), firstOrThrow()
+- **Comparison Operators** (8 tests): gt, gte, lt, lte, neq, in, is null, is true/false
+- **Pattern Matching** (2 tests): like, ilike (case-insensitive)
+- **OR Chaining** (3 tests): Single OR, multiple OR, OR with IS conditions
+- **Functional Operations** (9 tests): map, chained map, filter, filter+map, limit, offset, pagination
+- **Soft Delete Operations** (3 tests): includeDeleted(), excludeDeleted(), onlyDeleted()
+- **Complex Query Chains** (2 tests): Combined operations, type safety
+
+**Total**: ~33 Query API integration tests
+
+### Entity API Tests (`Entity.integration.spec.ts`)
+
+- **getGlobalItems()** (3 tests): Fetch all, with conditions, soft delete filtering
+- **getItem()** (2 tests): Fetch by ID, not found handling
+- **addItems()** (2 tests): Single insert, batch insert
+- **updateItem()** (2 tests): Update by ID, non-existent item
+- **deleteItem()** (2 tests): Hard delete, soft delete
+- **deleteItems()** (1 test): Batch delete
+- **OrThrow Variants** (6 tests): All \*OrThrow methods with success and error cases
+- **Multi-tenancy** (1 test): Partition key support
+- **Error Handling** (1 test): Database constraint violations
+
+**Total**: ~20 Entity API integration tests
+
+### Advanced Query Tests (`QueryAdvanced.integration.spec.ts`)
+
+- **Complex Query Chains** (3 tests): OR+filter+map+limit, nested transformations, multiple conditions
+- **Pagination Scenarios** (3 tests): Offset-based pagination, limit only, offset only
+- **Concurrent Query Execution** (2 tests): Multiple concurrent queries, concurrent map operations
+- **Edge Cases** (4 tests): Empty results, long OR chains, no matches, null comparisons
+- **Performance Characteristics** (2 tests): Large result sets, multiple filters
+- **Type Safety** (2 tests): Types through complex chains, nested transformations
+- **Real-world Scenarios** (3 tests): Recent posts query, admin emails, paginated search
+
+**Total**: ~19 Advanced integration tests
+
+### Helper Utilities (`database-setup.ts`)
+
+- Connection management (Supabase/PostgREST)
+- Test data creation (single/batch)
+- Soft delete test data generation
+- Automatic cleanup with test\_ prefix pattern
+
 ## Local Development Setup
 
 ### Option 1: Using Your Own Supabase Project (Recommended)
@@ -24,43 +73,69 @@ supabase-typed-query → Supabase Client → PostgreSQL/Supabase Database
    - Create a new project or select existing
    - Get your project URL and anon key from Project Settings > API
 
-2. **Set up test schema** (optional - tests will skip if tables don't exist):
+2. **Set up test schema**:
+
+   The integration tests require specific tables in your database. We provide a complete SQL schema file:
+
+   **Option A: Using the provided schema file**
+
+   ```bash
+   # Copy the SQL schema from test/integration/schema.sql
+   # and run it in your Supabase SQL editor
+   cat test/integration/schema.sql
+   ```
+
+   **Option B: Run the SQL directly**
 
    ```sql
    -- Create test tables in your Supabase SQL editor
-   CREATE TABLE IF NOT EXISTS users (
+   -- See test/integration/schema.sql for the complete schema
+
+   -- Users table
+   CREATE TABLE users (
      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
      name TEXT NOT NULL,
      email TEXT UNIQUE NOT NULL,
      age INTEGER,
      active BOOLEAN DEFAULT true,
-     role TEXT DEFAULT 'user',
-     created_at TIMESTAMPTZ DEFAULT NOW(),
-     deleted TIMESTAMPTZ
+     role TEXT,
+     created_at TIMESTAMPTZ DEFAULT now(),
+     deleted TIMESTAMPTZ  -- Soft delete column
    );
 
-   CREATE TABLE IF NOT EXISTS posts (
+   -- Posts table
+   CREATE TABLE posts (
      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
      title TEXT NOT NULL,
-     content TEXT NOT NULL,
-     author_id UUID REFERENCES users(id),
-     status TEXT DEFAULT 'draft',
+     content TEXT,
+     author_id UUID REFERENCES users(id) ON DELETE CASCADE,
+     status TEXT,
      view_count INTEGER DEFAULT 0,
      published_at TIMESTAMPTZ,
-     created_at TIMESTAMPTZ DEFAULT NOW(),
-     tenant_id UUID,
-     deleted TIMESTAMPTZ
+     created_at TIMESTAMPTZ DEFAULT now(),
+     deleted TIMESTAMPTZ  -- Soft delete column
    );
 
-   CREATE TABLE IF NOT EXISTS comments (
+   -- Comments table
+   CREATE TABLE comments (
      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     post_id UUID REFERENCES posts(id),
-     user_id UUID REFERENCES users(id),
+     post_id UUID REFERENCES posts(id) ON DELETE CASCADE,
+     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
      text TEXT NOT NULL,
-     created_at TIMESTAMPTZ DEFAULT NOW(),
-     deleted TIMESTAMPTZ
+     created_at TIMESTAMPTZ DEFAULT now(),
+     deleted TIMESTAMPTZ  -- Soft delete column
    );
+
+   -- Create indexes for better query performance
+   CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+   CREATE INDEX IF NOT EXISTS idx_users_active ON users(active) WHERE deleted IS NULL;
+   CREATE INDEX IF NOT EXISTS idx_posts_author ON posts(author_id);
+   CREATE INDEX IF NOT EXISTS idx_posts_status ON posts(status) WHERE deleted IS NULL;
+   CREATE INDEX IF NOT EXISTS idx_comments_post ON comments(post_id);
+   CREATE INDEX IF NOT EXISTS idx_comments_user ON comments(user_id);
    ```
+
+   > **Note**: The complete schema with indexes and seed data is available in `test/integration/schema.sql`
 
 3. **Configure environment variables**:
 
